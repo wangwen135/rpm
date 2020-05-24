@@ -1,0 +1,10 @@
+target/
+log/
+.settings/
+.classpath
+.project
+*.log
+*.class
+*.jar
+*.war
+*.tar.gz
