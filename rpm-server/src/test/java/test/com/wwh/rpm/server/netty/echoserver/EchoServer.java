@@ -55,10 +55,10 @@ public final class EchoServer {
 
         // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup(1);
 
         // 事件处理线程
-        EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(16);
+//        EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(16);
 
         final EchoServerHandler serverHandler = new EchoServerHandler();
         try {
@@ -75,7 +75,7 @@ public final class EchoServer {
                         if (sslCtx != null) {
                             p.addLast(sslCtx.newHandler(ch.alloc()));
                         }
-                        p.addLast(new LoggingHandler(LogLevel.INFO));
+                       // p.addLast(new LoggingHandler(LogLevel.INFO));
                         // 编码解码器
                         p.addLast(new StringDecoder());
                         p.addLast(new StringEncoder());
@@ -86,9 +86,9 @@ public final class EchoServer {
                         // 如果你的业务逻辑是完全异步的，或者完成得非常快，那么就不需要这样做
                         // 需要指定一个EventExecutorGroup，将用于执行ChannelHandler中的方法
 
-                        p.addLast(eventExecutorGroup, "String Echo", new StringEchoHandler());
+//                        p.addLast(eventExecutorGroup, "String Echo", new StringEchoHandler());
 
-                        // p.addLast(new StringEchoHandler());
+                         p.addLast(new StringEchoHandler());
                         // p.addLast(serverHandler);
                     }
                 });
