@@ -9,43 +9,77 @@ import com.wwh.rpm.config.server.ServerConfig;
 
 public class Main {
 
-	private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	public static void main(String[] args) {
-		logger.warn("启动 RPM ...");
+    private static Object lock = new Object();
 
-		Launch(args);
+    public static void main(String[] args) {
+        logger.warn("启动 RPM ...");
+        try {
+            Launch(args);
+        } catch (Exception e) {
+            logger.error("程序异常！", e);
+        }
+        logger.warn("RPM 停止工作！");
+    }
 
-		logger.warn("RPM 停止！");
+    public static void Launch(String[] args) {
+        // 读取配置文件
+        ServerConfig config;
+        try {
+            config = Configuration.getServerConfig();
+        } catch (ConfigException e) {
+            logger.error("配置文件错误：\n{}", e.getMessage());
+            return;
+        }
 
-	}
+        ServerManager sm = new ServerManager(config);
 
-	public static void Launch(String[] args) {
-		// 读取配置文件
-		ServerConfig config;
-		try {
-			config = Configuration.getServerConfig();
+        try {
+            // 启动服务
+            sm.startServer();
 
-			logger.warn("读取到的配置文件是：\n{}", config.toPrettyString());
+            // 注册关闭钩子
+            addShutdownHook(sm);
 
-		} catch (ConfigException e) {
-			logger.error("配置文件错误：\n{}", e.getMessage());
-			return;
-		}
+            
+            //测试一下
+            new Thread(()-> {
+                try {
+                    Thread.sleep(10000);
+                    System.exit(9);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            
+            // 等待关闭
+            synchronized (lock) {
+                try {
+                    logger.debug("等待关闭程序的信号...");
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
 
-		ServerManager sm = new ServerManager(config);
+        } catch (Exception e1) {
+            logger.error("启动服务异常", e1);
+        } finally {
+            // 关闭
+            sm.shutdownServer();
+        }
 
-		addShutdownHook(sm);
-		// 启动服务
+    }
 
-		sm.startServer();
-	}
+    private static void addShutdownHook(ServerManager sm) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.warn("shutdown hook exec");
 
-	private static void addShutdownHook(ServerManager sm) {
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			// 关闭
-			sm.shutdownServer();
-		}));
+            synchronized (lock) {
+                lock.notifyAll();
+            }
+        }));
 
-	}
+    }
 }
