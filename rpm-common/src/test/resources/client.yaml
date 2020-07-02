@@ -1,0 +1,15 @@
+cid: ssssddddff
+forwardOverServer:
+- forwardHost: 127.0.0.1
+  forwardPort: 8899
+  listenHost: 127.0.0.1
+  listenPort: 8899
+- forwardHost: 127.20.1
+  forwardPort: 8991
+  listenHost: 127.0.0.1
+  listenPort: 8991
+serverConf:
+  encryption: 1
+  host: 192.168.1.1
+  port: 9900123123131231231312313123123123123123123
+  sid: xxdfsdfsdf

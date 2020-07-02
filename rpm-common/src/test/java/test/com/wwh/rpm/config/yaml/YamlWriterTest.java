@@ -19,6 +19,7 @@ public class YamlWriterTest {
 
 	public static void main(String[] args) throws IOException {
 		serverConfig();
+		clientConfig();
 	}
 
 	public static void serverConfig() throws IOException {
@@ -45,7 +46,7 @@ public class YamlWriterTest {
 		yaml.dump(sc, new FileWriter(file));
 	}
 
-	public static void clientConfig(String[] args) throws IOException {
+	public static void clientConfig() throws IOException {
 		ClientConfig cc = new ClientConfig();
 
 		cc.setCid("ssssddddff");
