@@ -11,5 +11,5 @@ forwardOverServer:
 serverConf:
   encryption: 1
   host: 192.168.1.1
-  port: 9900123123131231231312313123123123123123123
+  port: 999
   sid: xxdfsdfsdf
