@@ -7,6 +7,8 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 
 @Sharable
 public class StringEchoHandler extends SimpleChannelInboundHandler<String> {
@@ -29,8 +31,22 @@ public class StringEchoHandler extends SimpleChannelInboundHandler<String> {
 			// 模拟同步的耗时任务
 			Thread.sleep(1000);
 			// 返回
-			ctx.writeAndFlush("#！ 你发送的消息是：" + message);
+			ctx.writeAndFlush("\n# you message ：" + message);
 		}
 
+	}
+
+	@Override
+	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+		if (evt instanceof IdleStateEvent) {
+			IdleStateEvent event = (IdleStateEvent) evt;
+			if (event.state() == IdleState.READER_IDLE) {
+				logger.warn("到达指定时间间隔没有收到心跳，关闭连接：{}", ctx.channel().remoteAddress());
+				ctx.fireUserEventTriggered(evt);
+				ctx.close();
+			}
+		} else {
+			super.userEventTriggered(ctx, evt);
+		}
 	}
 }

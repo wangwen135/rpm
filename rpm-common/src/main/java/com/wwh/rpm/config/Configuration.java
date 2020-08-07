@@ -62,8 +62,7 @@ public class Configuration {
 	} catch (ConfigException e) {
 	    throw e;
 	} catch (Exception e) {
-	    //throw new ConfigException("配置文件错误", e);
-	    throw new RuntimeException("配置文件异常",e);
+	    throw new ConfigException("配置文件错误", e);
 	}
     }
 
