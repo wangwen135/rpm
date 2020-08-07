@@ -1,6 +1,7 @@
 package test.com.wwh.rpm.client.netty.echoclient;
 
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 /*
   * Copyright 2012 The Netty Project
@@ -35,6 +36,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
 
 /**
  * Sends one message when a connection is open and echoes back any received data
@@ -44,79 +46,82 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
  */
 public final class EchoClient {
 
-    static final boolean SSL = System.getProperty("ssl") != null;
-    static final String HOST = System.getProperty("host", "127.0.0.1");
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
-    static final int SIZE = Integer.parseInt(System.getProperty("size", "256"));
+	static final boolean SSL = System.getProperty("ssl") != null;
+	static final String HOST = System.getProperty("host", "127.0.0.1");
+	static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
+	static final int SIZE = Integer.parseInt(System.getProperty("size", "256"));
 
-    public static void main(String[] args) throws Exception {
-        // Configure SSL.git
-        final SslContext sslCtx;
-        if (SSL) {
-            sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-        } else {
-            sslCtx = null;
-        }
+	public static void main(String[] args) throws Exception {
+		// Configure SSL.git
+		final SslContext sslCtx;
+		if (SSL) {
+			sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+		} else {
+			sslCtx = null;
+		}
 
-        // Configure the client.
-        EventLoopGroup group = new NioEventLoopGroup();
-        try {
-            Bootstrap b = new Bootstrap();
-            b.group(group)
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.TCP_NODELAY, true)
-                .handler(new ChannelInitializer<SocketChannel>() {
+		// Configure the client.
+		EventLoopGroup group = new NioEventLoopGroup();
+		try {
+			Bootstrap b = new Bootstrap();
+			b.group(group).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true).handler(new ChannelInitializer<SocketChannel>() {
 
-                    @Override
-                    public void initChannel(SocketChannel ch) throws Exception {
-                        ChannelPipeline p = ch.pipeline();
-                        if (sslCtx != null) {
-                            p.addLast(sslCtx.newHandler(ch.alloc(), HOST, PORT));
-                        }
-                        p.addLast(new LoggingHandler(LogLevel.INFO));
-                        // 编码解码器
-                        p.addLast(new StringDecoder());// 这个解码器是怎么释放ByteBuf的
-                        p.addLast(new StringEncoder());
-                        p.addLast(new StringPrintHandler());
-                        // p.addLast(new EchoClientHandler());
-                    }
-                });
+				@Override
+				public void initChannel(SocketChannel ch) throws Exception {
+					ChannelPipeline p = ch.pipeline();
+					if (sslCtx != null) {
+						p.addLast(sslCtx.newHandler(ch.alloc(), HOST, PORT));
+					}
+					// 心跳
+					p.addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
+					p.addLast(new HeartbeatHandler());
 
-            // Start the client.
-            ChannelFuture f = b.connect(HOST, PORT).sync();
+					// netty 日志记录器
+					// p.addLast(new LoggingHandler(LogLevel.INFO));
 
-            System.out.println("启动成功！");
-            System.out.println("在控制输入内容");
-            System.out.println("exit 客户端退出");
-            System.out.println("quit 服务端退出");
+					// 编码解码器
+					p.addLast(new StringDecoder());
+					p.addLast(new StringEncoder());
+					p.addLast(new StringPrintHandler());
+					// p.addLast(new EchoClientHandler());
+				}
+			});
 
-            Scanner scanner = new Scanner(System.in);
+			// Start the client.
+			ChannelFuture f = b.connect(HOST, PORT).sync();
 
-            String line = null;
-            Channel channel = f.channel();
-            while (true) {
-                line = scanner.nextLine();
+			System.out.println("启动成功！");
+			System.out.println("在控制输入内容");
+			System.out.println("exit 客户端退出");
+			System.out.println("quit 服务端退出");
 
-                if ("exit".equalsIgnoreCase(line)) {
-                    System.out.println("客户端退出！");
-                    scanner.close();
-                    channel.close().sync();
-                    return;
-                } else {
-                    if (channel.isActive()) {
-                        channel.writeAndFlush(line);
-                    } else {
-                        System.out.println("连接关闭了，退出");
-                        return;
-                    }
-                }
-            }
+			Scanner scanner = new Scanner(System.in);
 
-            // Wait until the connection is closed.
-            // f.channel().closeFuture().sync();
-        } finally {
-            // Shut down the event loop to terminate all threads.
-            group.shutdownGracefully();
-        }
-    }
+			String line = null;
+			Channel channel = f.channel();
+			while (true) {
+				line = scanner.nextLine();
+
+				if ("exit".equalsIgnoreCase(line)) {
+					System.out.println("客户端退出！");
+					scanner.close();
+					channel.close().sync();
+					return;
+				} else {
+					if (channel.isActive()) {
+						channel.writeAndFlush(line);
+					} else {
+						System.out.println("连接关闭了，退出");
+						return;
+					}
+				}
+			}
+
+			// Wait until the connection is closed.
+			// f.channel().closeFuture().sync();
+		} finally {
+			// Shut down the event loop to terminate all threads.
+			group.shutdownGracefully();
+		}
+	}
 }
