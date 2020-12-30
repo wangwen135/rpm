@@ -1,4 +1,4 @@
-!!com.wwh.rpm.config.server.ServerConfig
+
 encryption: 1
 forwardOverClient: [
   ]

@@ -3,7 +3,7 @@ package com.wwh.rpm.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.config.server.ServerConfig;
+import com.wwh.rpm.server.config.pojo.ServerConfig;
 import com.wwh.rpm.server.master.MasterServer;
 import com.wwh.rpm.server.subserver.SubserverManager;
 
@@ -43,7 +43,7 @@ public class ServerManager {
 	private void startSubServer() throws Exception {
 
 		logger.info("启动子服务...");
-		
+		//多个子服务复用一个bossGroup和workGroup线程池
 		
 	}
 	

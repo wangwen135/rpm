@@ -1,0 +1,24 @@
+cid: ssssddddff
+
+# 服务端配置
+serverConf:
+  encryption: 1
+  host: 127.0.0.1
+  port: 9999
+  sid: xxdfsdfsdf
+
+# 转发配置
+forwardOverServer:
+- forwardHost: 127.0.0.1
+  forwardPort: 8899
+  listenHost: 127.0.0.1
+  listenPort: 8899
+- forwardHost: 127.20.1
+  forwardPort: 8991
+  listenHost: 127.0.0.1
+  listenPort: 8991
+
+# 其他参数
+arguments:
+  enableNettyLog: true
+  nettyLogLevel: INFO
