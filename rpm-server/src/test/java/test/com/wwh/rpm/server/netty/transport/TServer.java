@@ -15,48 +15,39 @@ import test.com.wwh.rpm.server.netty.echoserver.StringEchoHandler;
 
 public class TServer {
 
-	public static final int PORT = 18899;
+    public static final int PORT = 18899;
 
-	public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
 
-		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-		EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-		try {
-			ServerBootstrap b = new ServerBootstrap();
-			b.group(bossGroup, workerGroup)
+        try {
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+            b.option(ChannelOption.SO_BACKLOG, 100);
+            b.handler(new LoggingHandler(LogLevel.INFO));
+            b.childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                public void initChannel(SocketChannel ch) throws Exception {
+                    ChannelPipeline p = ch.pipeline();
+                    // 第一步应该是鉴权，配置转发参数
+                    p.addLast(new StringEchoHandler());
+                }
+            });
 
-					.channel(NioServerSocketChannel.class)
+            // Start the server.
+            ChannelFuture f = b.bind(PORT).sync();
 
-					.option(ChannelOption.SO_BACKLOG, 100)
+            System.out.println("服务已经启动！");
+            System.out.println("绑定端口：" + PORT);
 
-					.handler(new LoggingHandler(LogLevel.INFO))
-
-					.childHandler(new ChannelInitializer<SocketChannel>() {
-
-						@Override
-						public void initChannel(SocketChannel ch) throws Exception {
-							ChannelPipeline p = ch.pipeline();
-
-							// 第一步应该是鉴权，配置转发参数
-
-							p.addLast(new StringEchoHandler());
-
-						}
-					});
-
-			// Start the server.
-			ChannelFuture f = b.bind(PORT).sync();
-
-			System.out.println("服务已经启动！");
-			System.out.println("绑定端口：" + PORT);
-
-			// Wait until the server socket is closed.
-			f.channel().closeFuture().sync();
-		} finally {
-			// Shut down all event loops to terminate all threads.
-			bossGroup.shutdownGracefully();
-			workerGroup.shutdownGracefully();
-		}
-	}
+            // Wait until the server socket is closed.
+            f.channel().closeFuture().sync();
+        } finally {
+            // Shut down all event loops to terminate all threads.
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+        }
+    }
 }

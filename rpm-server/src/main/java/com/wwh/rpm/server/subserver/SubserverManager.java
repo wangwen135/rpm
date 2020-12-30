@@ -1,6 +1,6 @@
 package com.wwh.rpm.server.subserver;
 
-import com.wwh.rpm.config.server.ServerConfig;
+import com.wwh.rpm.server.config.pojo.ServerConfig;
 
 /**
  * 子服务管理器
