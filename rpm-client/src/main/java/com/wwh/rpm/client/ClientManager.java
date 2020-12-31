@@ -11,10 +11,11 @@ public class ClientManager {
 
     private ClientConfig config;
     private BaseClient baseClient;
+    // 还有一堆子服务
 
     public ClientManager(ClientConfig config) {
         this.config = config;
-        baseClient = new BaseClient(config);
+        baseClient = new BaseClient(this);
     }
 
     public void startClient() throws Exception {
@@ -26,6 +27,14 @@ public class ClientManager {
 
     public void shutdownClient() {
         baseClient.shutdown();
+    }
+
+    public String getToken() {
+        return baseClient.getToken();
+    }
+
+    public ClientConfig getConfig() {
+        return config;
     }
 
 }

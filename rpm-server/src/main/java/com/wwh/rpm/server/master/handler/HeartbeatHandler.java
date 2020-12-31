@@ -24,7 +24,7 @@ public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         // 如果是心跳包就不再往后处理了
         if (msg instanceof HearbeatPacket) {
-            logger.info("收到心跳包");
+            logger.info("收到来自：{} 的心跳包", ctx.channel().remoteAddress().toString());
             // 回复一个心跳包
             ctx.writeAndFlush(new HearbeatPacket());
         } else {

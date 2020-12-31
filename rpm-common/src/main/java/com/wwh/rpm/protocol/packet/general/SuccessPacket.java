@@ -1,5 +1,6 @@
 package com.wwh.rpm.protocol.packet.general;
 
+import com.wwh.rpm.protocol.ProtocolConstants;
 import com.wwh.rpm.protocol.packet.AbstractPacket;
 
 /**
@@ -15,8 +16,7 @@ public class SuccessPacket extends AbstractPacket {
 
     @Override
     public byte getType() {
-        // TODO Auto-generated method stub
-        return 0;
+        return ProtocolConstants.TYPE_SUCCESS;
     }
 
     public String getMsg() {
