@@ -29,6 +29,16 @@ public class ProtocolConstants {
     public static final byte TYPE_RESULT = 7;
 
     /**
+     * 成功
+     */
+    public static final byte TYPE_SUCCESS = 8;
+
+    /**
+     * 失败
+     */
+    public static final byte TYPE_FAIL = 9;
+
+    /**
      * 注册包
      */
     public static final byte TYPE_REGIST = 10;
@@ -47,4 +57,9 @@ public class ProtocolConstants {
      * 指令
      */
     public static final byte TYPE_COMMAND = 30;
+
+    /**
+     * 转发指令
+     */
+    public static final byte TYPE_FORWARD_COMMAND = 31;
 }

@@ -16,19 +16,19 @@ public class AuthPacket extends AbstractPacket {
     /**
      * 使用sid加密的随机数
      */
-    private String cipherCode;
+    private byte[] chiphers;
 
     @Override
     public byte getType() {
         return ProtocolConstants.TYPE_AUTH;
     }
 
-    public String getCipherCode() {
-        return cipherCode;
+    public byte[] getChiphers() {
+        return chiphers;
     }
 
-    public void setCipherCode(String cipherCode) {
-        this.cipherCode = cipherCode;
+    public void setChiphers(byte[] chiphers) {
+        this.chiphers = chiphers;
     }
 
 }

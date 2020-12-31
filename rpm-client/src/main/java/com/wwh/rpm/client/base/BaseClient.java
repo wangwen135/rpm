@@ -5,7 +5,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.client.Main;
+import com.wwh.rpm.client.ClientManager;
+import com.wwh.rpm.client.ClientStarter;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConf;
 
@@ -22,7 +23,7 @@ public class BaseClient {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseClient.class);
 
-    private ClientConfig config;
+    private ClientManager clientManager;
 
     private AtomicBoolean isRunning = new AtomicBoolean(false);
 
@@ -30,8 +31,13 @@ public class BaseClient {
 
     private Channel channel;
 
-    public BaseClient(ClientConfig config) {
-        this.config = config;
+    /**
+     * 服务端返回的token
+     */
+    private String token;
+
+    public BaseClient(ClientManager clientManager) {
+        this.clientManager = clientManager;
     }
 
     public boolean isRunning() {
@@ -58,13 +64,13 @@ public class BaseClient {
             logger.error("客户端正在运行！");
             return;
         }
-        ServerConf serverConf = config.getServerConf();
+        ServerConf serverConf = clientManager.getConfig().getServerConf();
 
         workerGroup = new NioEventLoopGroup();
         Bootstrap b = new Bootstrap();
         b.group(workerGroup).channel(NioSocketChannel.class);
         b.option(ChannelOption.TCP_NODELAY, true);
-        b.handler(new BaseHandlerInitializer(config));
+        b.handler(new BaseHandlerInitializer(this));
 
         ChannelFuture f = b.connect(serverConf.getHost(), serverConf.getPort()).sync();
         channel = f.channel();
@@ -72,9 +78,20 @@ public class BaseClient {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 logger.warn("客户端主连接被关闭");
-                Main.shutdownNotify();
+                ClientStarter.shutdownNotify();
             }
         });
     }
 
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public ClientConfig getConfig() {
+        return clientManager.getConfig();
+    }
 }

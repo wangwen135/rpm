@@ -23,28 +23,29 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 public class MasterHandlerInitializer extends ChannelInitializer<SocketChannel> {
 
-    private ServerConfig config;
+    private MasterServer masterServer;
 
-    public MasterHandlerInitializer(ServerConfig config) {
-        this.config = config;
+    public MasterHandlerInitializer(MasterServer masterServer) {
+        this.masterServer = masterServer;
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
 
+        ServerConfig config = masterServer.getConfig();
         HandlerInitHelper.initNettyLoggingHandler(p, config.getArguments());
 
         // 先添加编码器
         p.addLast(new PacketDecoder());
         p.addLast(new PacketEncoder());
 
+        // 认证
+        p.addLast(new AuthenticationHandler(masterServer));
+
         // 心跳处理
         p.addLast(new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
         p.addLast(new HeartbeatHandler());
-
-        // 认证
-        p.addLast(new AuthenticationHandler(config));
 
         // 指令处理
 

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -58,10 +59,10 @@ public class MasterServer {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
-            //b.childOption(ChannelOption.AUTO_READ, false);
+            // b.childOption(ChannelOption.AUTO_READ, false);
             b.childOption(ChannelOption.TCP_NODELAY, true);
 
-            b.childHandler(new MasterHandlerInitializer(config));
+            b.childHandler(new MasterHandlerInitializer(this));
 
             channel = b.bind(config.getHost(), config.getPort()).sync().channel();
 
@@ -87,4 +88,22 @@ public class MasterServer {
 
     }
 
+    public ServerConfig getConfig() {
+        return config;
+    }
+
+    /**
+     * 注册客户端
+     * 
+     * @param cid
+     * @param token
+     */
+    public void registClient(String cid, String token) {
+
+    }
+
+    public String validateToken(String token) {
+
+        throw new RPMException("无效的token");
+    }
 }

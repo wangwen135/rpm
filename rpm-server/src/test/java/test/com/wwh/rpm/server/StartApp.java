@@ -1,10 +1,10 @@
 package test.com.wwh.rpm.server;
 
-import com.wwh.rpm.server.Main;
+import com.wwh.rpm.server.ServerStarter;
 
 public class StartApp {
 
     public static void main(String[] args) {
-        Main.main(args);
+        ServerStarter.main(args);
     }
 }

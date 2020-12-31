@@ -8,9 +8,15 @@ import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.common.exception.ConfigException;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
 
-public class Main {
+/**
+ * 客户端启动器
+ * 
+ * @author wangwh
+ * @date 2020-12-31
+ */
+public class ClientStarter {
 
-    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientStarter.class);
 
     private static Object lock = new Object();
 
