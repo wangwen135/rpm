@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.exception.RPMException;
+import com.wwh.rpm.common.utils.RpmMsgPrinter;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -66,7 +67,7 @@ public class MasterServer {
 
             channel = b.bind(config.getHost(), config.getPort()).sync().channel();
 
-            logger.warn("主服务启动在 " + config.getHost() + ":" + config.getPort());
+            RpmMsgPrinter.printMsg("主服务启动在 {}:{}", config.getHost(), config.getPort());
 
         } catch (Exception e) {
             bossGroup.shutdownGracefully();

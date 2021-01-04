@@ -81,7 +81,6 @@ public class RegistHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.error("客户端注册异常！", cause);
-        // 关闭
         ctx.close();
     }
 }

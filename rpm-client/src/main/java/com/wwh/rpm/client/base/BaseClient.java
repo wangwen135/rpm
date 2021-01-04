@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.ClientManager;
-import com.wwh.rpm.client.ClientStarter;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConf;
 
@@ -16,9 +15,16 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+/**
+ * <pre>
+ * 客户端
+ * 这个可以走ssl，通讯量比较小，主要用于维持长连接。。
+ * </pre>
+ * 
+ * @author wwh
+ */
 public class BaseClient {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseClient.class);
@@ -27,14 +33,14 @@ public class BaseClient {
 
     private AtomicBoolean isRunning = new AtomicBoolean(false);
 
-    private EventLoopGroup workerGroup;
-
     private Channel channel;
 
     /**
      * 服务端返回的token
      */
     private String token;
+
+    private Object lock = new Object();
 
     public BaseClient(ClientManager clientManager) {
         this.clientManager = clientManager;
@@ -45,6 +51,10 @@ public class BaseClient {
     }
 
     public void shutdown() {
+        synchronized (lock) {
+            lock.notifyAll();
+        }
+
         if (!isRunning()) {
             logger.warn("主服务没有启动");
             return;
@@ -52,21 +62,15 @@ public class BaseClient {
         if (channel != null) {
             channel.close();
         }
-        // 考虑一下这个workerGroup 是否需要通用
-        // 如通用则需要由上层传下来，由上层关闭
-        if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
-        }
     }
 
-    public void start() throws Exception {
+    public void start(EventLoopGroup workerGroup) throws Exception {
         if (!isRunning.compareAndSet(false, true)) {
             logger.error("客户端正在运行！");
             return;
         }
         ServerConf serverConf = clientManager.getConfig().getServerConf();
 
-        workerGroup = new NioEventLoopGroup();
         Bootstrap b = new Bootstrap();
         b.group(workerGroup).channel(NioSocketChannel.class);
         b.option(ChannelOption.TCP_NODELAY, true);
@@ -78,7 +82,7 @@ public class BaseClient {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 logger.warn("客户端主连接被关闭");
-                ClientStarter.shutdownNotify();
+                clientManager.shutdownNotify();
             }
         });
     }
@@ -87,8 +91,31 @@ public class BaseClient {
         return token;
     }
 
+    /**
+     * 等待获取到token
+     * 
+     * @return
+     */
+    public String waitToken() {
+        if (token != null) {
+            return token;
+        }
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return token;
+    }
+
     public void setToken(String token) {
         this.token = token;
+        // 通知
+        synchronized (lock) {
+            lock.notifyAll();
+        }
     }
 
     public ClientConfig getConfig() {

@@ -58,11 +58,13 @@ public class ClientStarter {
                     e.printStackTrace();
                 }
             }
-            logger.warn("关闭客户端...");
 
         } catch (Exception e1) {
             logger.error("启动客户端异常", e1);
         } finally {
+
+            RpmMsgPrinter.printMsg("关闭客户端...");
+
             // 关闭
             sm.shutdownClient();
         }
@@ -72,9 +74,7 @@ public class ClientStarter {
     private static void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.debug("shutdown hook exec");
-            synchronized (lock) {
-                lock.notifyAll();
-            }
+            shutdownNotify();
         }));
     }
 
