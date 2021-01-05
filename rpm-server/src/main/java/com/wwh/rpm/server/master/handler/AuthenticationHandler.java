@@ -1,5 +1,7 @@
 package com.wwh.rpm.server.master.handler;
 
+import static com.wwh.rpm.common.Constants.DEFAULT_IDLE_TIMEOUT;
+
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -19,8 +21,8 @@ import com.wwh.rpm.server.master.MasterServer;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.Attribute;
-import io.netty.util.concurrent.ScheduledFuture;
 
 /**
  * 认证
@@ -39,7 +41,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
     private String cid;
     private String token;
 
-    private ScheduledFuture<?> timeOutFuture;
+    private boolean registered = false;
 
     public AuthenticationHandler(MasterServer masterServer) {
         this.masterServer = masterServer;
@@ -47,6 +49,11 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (registered) {
+            ctx.fireChannelRead(msg);
+            return;
+        }
+
         if (msg instanceof RegistPacket) {
             RegistPacket regist = (RegistPacket) msg;
             handleRegistPacket(ctx, regist);
@@ -91,7 +98,16 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             TokenPacket tokenPacket = new TokenPacket();
             tokenPacket.setToken(token);
             ctx.writeAndFlush(tokenPacket);
-            authSuccess(ctx);
+
+            // 注册
+            masterServer.registClient(cid, token, ctx.channel());
+            setAttribute(ctx);
+            registered = true;
+
+            // 心跳处理 这个只有客户端主连接需要加，普通的转发连接不需要
+            ctx.pipeline().addLast(new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
+            ctx.pipeline().addLast(new HeartbeatHandler());
+
         } else {
             throw new RPMException("随机数不正确，客户端认证失败！");
         }
@@ -102,58 +118,41 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
         // 验证token，失败直接关闭连接
         cid = masterServer.validateToken(token);
-
-        // 通知客户端
+        // 通知客户端认证成功
         ctx.writeAndFlush(new SuccessPacket());
-        authSuccess(ctx);
+
+        setAttribute(ctx);
+        // 移除handler
+        ctx.pipeline().remove(this);
+
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (registered) {
+            ctx.fireExceptionCaught(cause);
+            return;
+        }
+
         logger.error("客户端认证异常，关闭连接", cause);
         ctx.close();
     }
 
-    private void authSuccess(ChannelHandlerContext ctx) {
-        // 深圳channel属性
-        Attribute<String> attribute = ctx.channel().attr(Constants.ATTR_KEY_CID);
-        attribute.set(cid);
+    private void setAttribute(ChannelHandlerContext ctx) {
+        Attribute<String> cidAttr = ctx.channel().attr(Constants.ATTR_KEY_CID);
+        cidAttr.set(cid);
+        Attribute<String> tokenAttr = ctx.channel().attr(Constants.ATTR_KEY_TOKEN);
+        tokenAttr.set(token);
+    }
 
-        // 注册
-        masterServer.registClient(cid, token);
-        // 关闭定时器
-        timeOutFuture.cancel(true);
-
-        // 移除handler
-        ctx.pipeline().remove(this);
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+        masterServer.unregistClient(cid);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        logger.debug("新连接，启动定时器，用于关闭连接");
-
-        timeOutFuture = ctx.executor().schedule(new RegistTimeOutTask(ctx), Constants.DEFAULT_REGIST_TIMEOUT,
-                TimeUnit.SECONDS);
     }
-}
-
-class RegistTimeOutTask implements Runnable {
-    private static final Logger logger = LoggerFactory.getLogger(RegistTimeOutTask.class);
-
-    private final ChannelHandlerContext ctx;
-
-    public RegistTimeOutTask(ChannelHandlerContext ctx) {
-        this.ctx = ctx;
-    }
-
-    @Override
-    public void run() {
-        if (!ctx.channel().isOpen()) {
-            return;
-        }
-        logger.warn("注册超时，关闭连接！");
-        ctx.close();
-    }
-
 }

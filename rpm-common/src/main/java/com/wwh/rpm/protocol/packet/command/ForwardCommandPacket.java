@@ -1,5 +1,6 @@
 package com.wwh.rpm.protocol.packet.command;
 
+import com.wwh.rpm.protocol.ProtocolConstants;
 import com.wwh.rpm.protocol.packet.AbstractPacket;
 
 public class ForwardCommandPacket extends AbstractPacket {
@@ -12,7 +13,7 @@ public class ForwardCommandPacket extends AbstractPacket {
 
     @Override
     public byte getType() {
-        return 0;
+        return ProtocolConstants.TYPE_FORWARD_COMMAND;
     }
 
     public String getHost() {

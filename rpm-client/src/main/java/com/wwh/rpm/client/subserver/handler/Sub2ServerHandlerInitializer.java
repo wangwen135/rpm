@@ -1,12 +1,13 @@
-package com.wwh.rpm.client.subserver;
+package com.wwh.rpm.client.subserver.handler;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
-import com.wwh.rpm.client.subserver.handler.SubserverRegistHandler;
+import com.wwh.rpm.client.subserver.Subserver;
 import com.wwh.rpm.common.handler.HandlerInitHelper;
-import com.wwh.rpm.common.handler.HexDumpProxyBackendHandler;
+import com.wwh.rpm.common.handler.TransmissionHandler;
 import com.wwh.rpm.protocol.codec.PacketDecoder;
 import com.wwh.rpm.protocol.codec.PacketEncoder;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -19,10 +20,12 @@ import io.netty.channel.socket.SocketChannel;
  */
 public class Sub2ServerHandlerInitializer extends ChannelInitializer<SocketChannel> {
 
-    public Subserver subserver;
+    private Subserver subserver;
+    private Channel inboundChannel;
 
-    public Sub2ServerHandlerInitializer(Subserver subserver) {
+    public Sub2ServerHandlerInitializer(Subserver subserver, Channel inboundChannel) {
         this.subserver = subserver;
+        this.inboundChannel = inboundChannel;
     }
 
     @Override
@@ -40,12 +43,10 @@ public class Sub2ServerHandlerInitializer extends ChannelInitializer<SocketChann
         pipeline.addLast("decoder", new PacketDecoder());
 
         // 客户端注册
-        pipeline.addLast("regist", new SubserverRegistHandler(subserver));
-
-        // TODO 连接服务器之前都是需要进行认证的
+        pipeline.addLast("regist", new SubserverRegistHandler(subserver, inboundChannel));
 
         // 转发
-        pipeline.addLast(new HexDumpProxyBackendHandler(ch));
+        pipeline.addLast(new TransmissionHandler(inboundChannel));
     }
 
 }

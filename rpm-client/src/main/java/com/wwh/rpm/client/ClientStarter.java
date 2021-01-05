@@ -62,13 +62,10 @@ public class ClientStarter {
         } catch (Exception e1) {
             logger.error("启动客户端异常", e1);
         } finally {
-
             RpmMsgPrinter.printMsg("关闭客户端...");
-
             // 关闭
             sm.shutdownClient();
         }
-
     }
 
     private static void addShutdownHook() {

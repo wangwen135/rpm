@@ -1,6 +1,8 @@
 package com.wwh.rpm.common.handler;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.config.pojo.Arguments;
 
@@ -15,6 +17,8 @@ import io.netty.handler.logging.LoggingHandler;
  * @date 2020-12-30
  */
 public class HandlerInitHelper {
+
+    private static final Logger logger = LoggerFactory.getLogger(HandlerInitHelper.class);
 
     /**
      * 打印日志
@@ -37,7 +41,7 @@ public class HandlerInitHelper {
                     }
                 }
             }
-
+            logger.debug("添加LoggingHandler，级别：{}", logLevel);
             pipeline.addLast(new LoggingHandler(logLevel));
         }
     }

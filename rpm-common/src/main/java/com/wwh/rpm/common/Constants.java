@@ -32,7 +32,7 @@ public class Constants {
      */
     public static final int DEFAULT_HEARTBEAT = 60;
 
-    /////////////////////////////////// 不确定是否使用
+
     public static final AttributeKey<String> ATTR_KEY_CID = AttributeKey.valueOf("cid");
     public static final AttributeKey<String> ATTR_KEY_TOKEN = AttributeKey.valueOf("token");
 
