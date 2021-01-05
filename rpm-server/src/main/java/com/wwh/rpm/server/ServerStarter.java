@@ -58,15 +58,14 @@ public class ServerStarter {
                     e.printStackTrace();
                 }
             }
-            logger.warn("关闭服务...");
 
         } catch (Exception e1) {
             logger.error("启动服务异常", e1);
         } finally {
+            RpmMsgPrinter.printMsg("关闭服务...");
             // 关闭
             sm.shutdownServer();
         }
-
     }
 
     private static void addShutdownHook(ServerManager sm) {
@@ -76,6 +75,11 @@ public class ServerStarter {
                 lock.notifyAll();
             }
         }));
+    }
 
+    public static void shutdownNotify() {
+        synchronized (lock) {
+            lock.notifyAll();
+        }
     }
 }

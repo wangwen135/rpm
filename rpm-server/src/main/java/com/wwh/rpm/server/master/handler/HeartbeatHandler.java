@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.protocol.packet.heartbeat.HearbeatPacket;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
@@ -16,20 +16,15 @@ import io.netty.handler.timeout.IdleStateEvent;
  * @author wangwh
  * @date 2020-12-29
  */
-public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
+public class HeartbeatHandler extends SimpleChannelInboundHandler<HearbeatPacket> {
 
     private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        // 如果是心跳包就不再往后处理了
-        if (msg instanceof HearbeatPacket) {
-            logger.info("收到来自：{} 的心跳包", ctx.channel().remoteAddress().toString());
-            // 回复一个心跳包
-            ctx.writeAndFlush(new HearbeatPacket());
-        } else {
-            super.channelRead(ctx, msg);
-        }
+    protected void channelRead0(ChannelHandlerContext ctx, HearbeatPacket msg) throws Exception {
+        logger.info("收到来自：{} 的心跳包", ctx.channel().remoteAddress().toString());
+        // 回复一个心跳包
+        ctx.writeAndFlush(new HearbeatPacket());
     }
 
     @Override
@@ -45,4 +40,5 @@ public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
             super.userEventTriggered(ctx, evt);
         }
     }
+
 }

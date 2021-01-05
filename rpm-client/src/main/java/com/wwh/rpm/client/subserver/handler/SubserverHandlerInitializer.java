@@ -1,12 +1,8 @@
-package com.wwh.rpm.client.subserver;
+package com.wwh.rpm.client.subserver.handler;
 
-import com.wwh.rpm.client.base.handler.RegistHandler;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
-import com.wwh.rpm.client.subserver.handler.SubserverProxyHandler;
-import com.wwh.rpm.client.subserver.handler.SubserverRegistHandler;
+import com.wwh.rpm.client.subserver.Subserver;
 import com.wwh.rpm.common.handler.HandlerInitHelper;
-import com.wwh.rpm.protocol.codec.PacketDecoder;
-import com.wwh.rpm.protocol.codec.PacketEncoder;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

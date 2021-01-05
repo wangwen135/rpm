@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
+import com.wwh.rpm.client.subserver.handler.SubserverHandlerInitializer;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -48,7 +49,7 @@ public class Subserver {
         b.childOption(ChannelOption.AUTO_READ, false);
         b.childOption(ChannelOption.TCP_NODELAY, true);
 
-        // b.childHandler(new MasterHandlerInitializer(this));
+        b.childHandler(new SubserverHandlerInitializer(this));
 
         channel = b.bind(forwardConfig.getListenHost(), forwardConfig.getListenPort()).sync().channel();
 

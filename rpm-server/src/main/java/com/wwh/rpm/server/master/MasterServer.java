@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.server.ServerManager;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
+import com.wwh.rpm.server.master.handler.MasterHandlerInitializer;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -15,82 +17,74 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class MasterServer {
 
     private static final Logger logger = LoggerFactory.getLogger(MasterServer.class);
 
-    private ServerConfig config;
+    private ServerManager serverManager;
+
+    private ClientTokenManager clientTokenManager;
 
     private AtomicBoolean isRunning = new AtomicBoolean(false);
 
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
     private Channel channel;
     // 客户端列表
 
-    public MasterServer(ServerConfig config) {
-        this.config = config;
+    public MasterServer(ServerManager serverManager) {
+        this.serverManager = serverManager;
+        this.clientTokenManager = new ClientTokenManager();
     }
 
     public boolean isRunning() {
         return isRunning.get();
     }
 
-    public void shutdown() throws Exception {
+    public void shutdown() {
         if (!isRunning()) {
             logger.warn("主服务没有启动");
             return;
         }
-        if (channel != null) {
+        if (channel != null && channel.isActive()) {
             channel.close();
+            try {
+                channel.closeFuture().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    public void start() throws Exception {
+    public void start(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception {
         if (!isRunning.compareAndSet(false, true)) {
             logger.error("主服务正在运行！");
             return;
         }
-        bossGroup = new NioEventLoopGroup(1);
-        workerGroup = new NioEventLoopGroup();
 
-        try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
-            // b.childOption(ChannelOption.AUTO_READ, false);
-            b.childOption(ChannelOption.TCP_NODELAY, true);
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+        // b.childOption(ChannelOption.AUTO_READ, false);
+        b.childOption(ChannelOption.TCP_NODELAY, true);
 
-            b.childHandler(new MasterHandlerInitializer(this));
+        b.childHandler(new MasterHandlerInitializer(this));
 
-            channel = b.bind(config.getHost(), config.getPort()).sync().channel();
+        channel = b.bind(getConfig().getHost(), getConfig().getPort()).sync().channel();
 
-            RpmMsgPrinter.printMsg("主服务启动在 {}:{}", config.getHost(), config.getPort());
-
-        } catch (Exception e) {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
-            throw e;
-        }
+        RpmMsgPrinter.printMsg("主服务启动在 {}:{}", getConfig().getHost(), getConfig().getPort());
 
         channel.closeFuture().addListener(new ChannelFutureListener() {
-
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                // 这里阻塞一下试试
-
-                logger.warn(future.channel().toString() + " 链路关闭");
-                bossGroup.shutdownGracefully();
-                workerGroup.shutdownGracefully();
+                logger.warn(future.channel().toString() + " 服务端关闭");
+                serverManager.shutdownNotify();
             }
         });
 
     }
 
     public ServerConfig getConfig() {
-        return config;
+        return serverManager.getConfig();
     }
 
     /**
@@ -98,13 +92,22 @@ public class MasterServer {
      * 
      * @param cid
      * @param token
+     * @param channel
      */
-    public void registClient(String cid, String token) {
+    public void registClient(String cid, String token, Channel channel) {
+        clientTokenManager.regist(cid, token, channel);
+    }
 
+    public void unregistClient(String cid) {
+        clientTokenManager.unregist(cid);
     }
 
     public String validateToken(String token) {
-
-        throw new RPMException("无效的token");
+        String cid = clientTokenManager.getCidByToken(token);
+        if (cid == null) {
+            throw new RPMException("无效的token");
+        } else {
+            return cid;
+        }
     }
 }
