@@ -69,7 +69,7 @@ public class RegistHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        // 注册客户端
+        logger.debug("注册客户端...");
         ClientConfig clientConfig = baseClient.getConfig();
 
         RegistPacket registPacket = new RegistPacket();

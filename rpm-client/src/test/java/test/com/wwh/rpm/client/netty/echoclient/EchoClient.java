@@ -1,7 +1,6 @@
 package test.com.wwh.rpm.client.netty.echoclient;
 
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 /*
   * Copyright 2012 The Netty Project
@@ -22,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -32,12 +30,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.handler.timeout.IdleStateHandler;
 
 /**
  * Sends one message when a connection is open and echoes back any received data to the server. Simply put, the echo client initiates the ping-pong traffic between the echo client and server by sending the first message
@@ -47,7 +42,7 @@ public final class EchoClient {
 
     static final boolean SSL = System.getProperty("ssl") != null;
     static final String HOST = System.getProperty("host", "127.0.0.1");
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
+    static final int PORT = Integer.parseInt(System.getProperty("port", "8899"));
     static final int SIZE = Integer.parseInt(System.getProperty("size", "256"));
 
     public static void main(String[] args) throws Exception {
@@ -73,8 +68,8 @@ public final class EchoClient {
                                 p.addLast(sslCtx.newHandler(ch.alloc(), HOST, PORT));
                             }
                             // 心跳
-                            p.addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
-                            p.addLast(new HeartbeatHandler());
+                            // p.addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
+                            // p.addLast(new HeartbeatHandler());
 
                             // netty 日志记录器
                             // p.addLast(new LoggingHandler(LogLevel.INFO));
@@ -112,6 +107,7 @@ public final class EchoClient {
                         channel.writeAndFlush(line);
                     } else {
                         System.out.println("连接关闭了，退出");
+                        scanner.close();
                         return;
                     }
                 }

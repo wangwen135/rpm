@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.wwh.rpm</groupId>
 		<artifactId>rpm</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.1</version>
 	</parent>
 	<artifactId>rpm-tools</artifactId>
 	<description>工具集</description>
