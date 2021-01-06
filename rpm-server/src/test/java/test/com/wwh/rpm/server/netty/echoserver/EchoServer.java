@@ -41,71 +41,71 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 public final class EchoServer {
 
-	static final boolean SSL = System.getProperty("ssl") != null;
-	static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
+    static final boolean SSL = System.getProperty("ssl") != null;
+    static final int PORT = Integer.parseInt(System.getProperty("port", "8800"));
 
-	public static void main(String[] args) throws Exception {
-		// Configure SSL.
-		final SslContext sslCtx;
-		if (SSL) {
-			SelfSignedCertificate ssc = new SelfSignedCertificate();
-			sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
-		} else {
-			sslCtx = null;
-		}
+    public static void main(String[] args) throws Exception {
+        // Configure SSL.
+        final SslContext sslCtx;
+        if (SSL) {
+            SelfSignedCertificate ssc = new SelfSignedCertificate();
+            sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+        } else {
+            sslCtx = null;
+        }
 
-		// Configure the server.
-		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-		EventLoopGroup workerGroup = new NioEventLoopGroup(3);
+        // Configure the server.
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(3);
 
-		// 事件处理线程
-		// EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(16);
+        // 事件处理线程
+        // EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(16);
 
-		final EchoServerHandler serverHandler = new EchoServerHandler();
-		try {
-			ServerBootstrap b = new ServerBootstrap();
-			b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).option(ChannelOption.SO_BACKLOG, 100).handler(new LoggingHandler(LogLevel.INFO))
-					.childHandler(new ChannelInitializer<SocketChannel>() {
+        // final EchoServerHandler serverHandler = new EchoServerHandler();
+        try {
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).option(ChannelOption.SO_BACKLOG, 100)
+                    .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new ChannelInitializer<SocketChannel>() {
 
-						@Override
-						public void initChannel(SocketChannel ch) throws Exception {
-							ChannelPipeline p = ch.pipeline();
-							if (sslCtx != null) {
-								p.addLast(sslCtx.newHandler(ch.alloc()));
-							}
+                        @Override
+                        public void initChannel(SocketChannel ch) throws Exception {
+                            ChannelPipeline p = ch.pipeline();
+                            if (sslCtx != null) {
+                                p.addLast(sslCtx.newHandler(ch.alloc()));
+                            }
 
-							p.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
+                            p.addLast(new IdleStateHandler(60, 0, 0, TimeUnit.SECONDS));
 
-							// p.addLast(new LoggingHandler(LogLevel.INFO));
-							// 编码解码器
-							p.addLast(new StringDecoder());
-							p.addLast(new StringEncoder());
+                            // p.addLast(new LoggingHandler(LogLevel.INFO));
+                            // 编码解码器
+                            p.addLast(new StringDecoder());
+                            p.addLast(new StringEncoder());
 
-							// 告诉管道执行事件的线程
-							// 不在I/O 线程中执行，就不会堵塞IO线程
-							/// 这是一项耗时的工作。
-							// 如果你的业务逻辑是完全异步的，或者完成得非常快，那么就不需要这样做
-							// 需要指定一个EventExecutorGroup，将用于执行ChannelHandler中的方法
+                            // 告诉管道执行事件的线程
+                            // 不在I/O 线程中执行，就不会堵塞IO线程
+                            /// 这是一项耗时的工作。
+                            // 如果你的业务逻辑是完全异步的，或者完成得非常快，那么就不需要这样做
+                            // 需要指定一个EventExecutorGroup，将用于执行ChannelHandler中的方法
 
-							// p.addLast(eventExecutorGroup, "String Echo", new StringEchoHandler());
+                            // p.addLast(eventExecutorGroup, "String Echo", new StringEchoHandler());
 
-							p.addLast(new StringEchoHandler());
-							// p.addLast(serverHandler);
-						}
-					});
+                            p.addLast(new StringEchoHandler());
+                            // p.addLast(serverHandler);
+                        }
+                    });
 
-			// Start the server.
-			ChannelFuture f = b.bind(PORT).sync();
+            // Start the server.
+            ChannelFuture f = b.bind(PORT).sync();
 
-			System.out.println("服务已经启动！");
-			System.out.println("绑定端口：" + PORT);
+            System.out.println("服务已经启动！");
+            System.out.println("绑定端口：" + PORT);
 
-			// Wait until the server socket is closed.
-			f.channel().closeFuture().sync();
-		} finally {
-			// Shut down all event loops to terminate all threads.
-			bossGroup.shutdownGracefully();
-			workerGroup.shutdownGracefully();
-		}
-	}
+            // Wait until the server socket is closed.
+            f.channel().closeFuture().sync();
+        } finally {
+            // Shut down all event loops to terminate all threads.
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+        }
+    }
 }

@@ -36,18 +36,18 @@ public class SubserverRegistHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof SuccessPacket) {
             if (stage == 1) {
-                logger.debug("注册成功");
+                logger.debug("服务端返回 注册成功！");
                 sendForwardInfo(ctx);
                 stage = 2;
             } else if (stage == 2) {
-                logger.debug("转发信息配置成功");
+                logger.debug("服务端返回 转发信息已设置成功！");
                 // 移除自己，移除编码解码器
                 ctx.pipeline().remove(this);
                 ctx.pipeline().remove("encoder");
                 ctx.pipeline().remove("decoder");
                 // 连接可用
                 ctx.read();
-                // 通知inchannel开始读取数据
+                logger.debug("通知inboundChannel开始读取数据");
                 inboundChannel.read();
             } else {
                 throw new RPMException("错误状态：" + stage);
@@ -77,7 +77,7 @@ public class SubserverRegistHandler extends ChannelInboundHandlerAdapter {
         ForwardCommandPacket fcp = new ForwardCommandPacket();
         fcp.setHost(host);
         fcp.setPort(port);
-        logger.debug("发送转发地址、端口信息");
+        logger.debug("向服务端发送转发地址 {}:{}", host, port);
         ctx.writeAndFlush(fcp);
         ctx.read();
     }
@@ -88,7 +88,7 @@ public class SubserverRegistHandler extends ChannelInboundHandlerAdapter {
         String token = subserver.getToken();
         TokenPacket tokenPacket = new TokenPacket();
         tokenPacket.setToken(token);
-        logger.debug("发送认证信息");
+        logger.debug("向服务器发送认证信息，token：{}", token);
 
         ctx.writeAndFlush(tokenPacket);
         stage = 1;
@@ -98,9 +98,8 @@ public class SubserverRegistHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("子服务链接异常！", cause);
+        logger.error("子服务链接异常！关闭双向链路", cause);
         ctx.close();
-        logger.info("关闭本地连接");
         inboundChannel.close();
     }
 }

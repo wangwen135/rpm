@@ -25,7 +25,7 @@ public class AuthTimeoutHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        logger.debug("新连接，启动定时器，用于关闭连接");
+        logger.debug("新进连接，启动定时器，用于关闭认证超时的连接");
         ctx.executor().schedule(new RegistTimeOutTask(ctx), Constants.DEFAULT_REGIST_TIMEOUT, TimeUnit.SECONDS);
     }
 }

@@ -64,12 +64,15 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             TokenPacket token = (TokenPacket) msg;
             handleTokenPacket(ctx, token);
         } else {
+            logger.warn("【主服务】认证处理收到异常包：{}", msg);
             throw new RPMException("客户端未注册！");
         }
     }
 
     private void handleRegistPacket(ChannelHandlerContext ctx, RegistPacket registPacket) {
+
         cid = registPacket.getCid();
+        logger.debug("【主服务】处理注册包，cid={}", cid);
         if (StringUtils.isBlank(cid)) {
             throw new RPMException("客户端cid不能为空");
         }
@@ -77,13 +80,14 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
         random = RandomUtils.nextInt(1111111, 9999999);
         String sid = masterServer.getConfig().getSid();
 
-        logger.debug("向客户端发送随机数：{}", random);
+        logger.debug("【主服务】向客户端发送随机数：{}", random);
 
         AuthPacket reply = RandomNumberCodec.encrypt(random, sid);
         ctx.writeAndFlush(reply);
     }
 
     private void handleAuthPacket(ChannelHandlerContext ctx, AuthPacket authPacket) {
+        logger.debug("【主服务】处理认证包");
         if (StringUtils.isBlank(cid)) {
             throw new RPMException("客户端未注册直接进行认证");
         }
@@ -93,20 +97,23 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
         // 比对随机数
         if ((rand - 1) == random) {
-            // 返回token
             token = UUID.randomUUID().toString();
+            logger.debug("【主服务】认证通过，返回token：{}", token);
+
             TokenPacket tokenPacket = new TokenPacket();
             tokenPacket.setToken(token);
             ctx.writeAndFlush(tokenPacket);
 
-            // 注册
+            logger.debug("【主服务】注册客户端：{}，token：{} ，channel：{}", cid, token, ctx.channel());
+
             masterServer.registClient(cid, token, ctx.channel());
             setAttribute(ctx);
             registered = true;
 
             // 心跳处理 这个只有客户端主连接需要加，普通的转发连接不需要
-            ctx.pipeline().addLast(new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
-            ctx.pipeline().addLast(new HeartbeatHandler());
+            ctx.pipeline().addAfter("encoder", "idle",
+                    new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
+            ctx.pipeline().addAfter("encoder", "heartbeat", new HeartbeatHandler());
 
         } else {
             throw new RPMException("随机数不正确，客户端认证失败！");
@@ -115,6 +122,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
     private void handleTokenPacket(ChannelHandlerContext ctx, TokenPacket tokenPacket) {
         token = tokenPacket.getToken();
+        logger.debug("【主服务】处理token包，token={}", token);
 
         // 验证token，失败直接关闭连接
         cid = masterServer.validateToken(token);
@@ -134,7 +142,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        logger.error("客户端认证异常，关闭连接", cause);
+        logger.error("【主服务】客户端认证异常，关闭连接", cause);
         ctx.close();
     }
 
@@ -148,11 +156,13 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+        logger.info("【主服务】连接:{} 断开了，取消注册，cid：{}", ctx.channel(), cid);
         masterServer.unregistClient(cid);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
+        logger.debug("【主服务】有新进入连接：{}", ctx.channel());
     }
 }

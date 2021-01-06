@@ -45,7 +45,7 @@ public class ClientManager {
         logger.info("启动客户端...");
         baseClient.start(workerGroup);
 
-        logger.debug("等待客户端注册成功...");
+        logger.debug("等待客户端注册完成...");
         baseClient.waitToken();
 
         logger.info("开始启动子服务...");

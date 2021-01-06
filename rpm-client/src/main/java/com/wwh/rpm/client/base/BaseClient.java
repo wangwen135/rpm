@@ -82,7 +82,7 @@ public class BaseClient {
         channel.closeFuture().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                logger.warn("客户端主连接被关闭");
+                logger.warn("客户端【主连接】被关闭！");
                 clientManager.shutdownNotify();
             }
         });

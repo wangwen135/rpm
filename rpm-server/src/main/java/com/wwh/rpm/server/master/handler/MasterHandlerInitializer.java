@@ -11,6 +11,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 
 /**
+ * 主服务handler初始化
+ * 
  * @author wangwh
  * @date 2020-12-29
  */

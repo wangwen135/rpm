@@ -7,6 +7,12 @@ import com.wwh.rpm.common.exception.RPMException;
 
 import io.netty.channel.Channel;
 
+/**
+ * cid 和 token 管理器
+ * 
+ * @author wangwh
+ * @date 2021-1-5
+ */
 public class ClientTokenManager {
 
     private Map<String, ClientToken> cidMap = new HashMap<>();

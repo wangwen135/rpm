@@ -16,5 +16,6 @@ public class StringPrintHandler extends SimpleChannelInboundHandler<String> {
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         System.out.println("这个方法被触发了");
         super.channelUnregistered(ctx);
+        System.exit(1);
     }
 }

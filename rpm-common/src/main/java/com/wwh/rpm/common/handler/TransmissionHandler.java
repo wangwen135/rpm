@@ -35,12 +35,13 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        logger.debug("目标连接已经建立");
+        logger.debug("【转发】目标连接已经建立");
     }
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, Object msg) {
         if (!outboundChannel.isActive()) {
+            logger.debug("【转发】输出通道不是活跃状态，关闭连接");
             ctx.close();
         } else {
             outboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
@@ -58,6 +59,7 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
+        logger.debug("【转发】连接{}已关闭", ctx.channel());
         closeOnFlush(outboundChannel);
     }
 
@@ -72,6 +74,7 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
      */
     private void closeOnFlush(Channel ch) {
         if (ch.isActive()) {
+            logger.debug("【转发】清空并关闭通道：{}", ch);
             ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }
     }

@@ -3,6 +3,7 @@ package com.wwh.rpm.server.master.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.common.handler.TransmissionHandler;
 import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
 import com.wwh.rpm.protocol.packet.general.FailPacket;
@@ -17,17 +18,24 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 
+/**
+ * 指令处理
+ * 
+ * @author wangwh
+ * @date 2021-1-6
+ */
 public class CommandHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        logger.debug("处理指令包：{}", msg.getClass());
 
         if (msg instanceof ForwardCommandPacket) {
             ForwardCommandPacket fcp = (ForwardCommandPacket) msg;
             forwardCommandHandler(ctx, fcp);
         } else {
-            super.channelRead(ctx, msg);
+            throw new RPMException("暂不支持！msg class : " + msg.getClass());
         }
     }
 
@@ -37,6 +45,8 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
 
         Bootstrap b = new Bootstrap();
         b.group(inboundChannel.eventLoop()).channel(inboundChannel.getClass());
+
+        // 不自动读取数据
         b.option(ChannelOption.AUTO_READ, false);
 
         // 新连接的数据直接转发
@@ -54,16 +64,18 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
                     inboundChannel.writeAndFlush(new SuccessPacket());
 
                     ChannelPipeline pipeline = ctx.pipeline();
+                    // 移除编码器和指令处理器
                     pipeline.remove("decoder");
                     pipeline.remove("encoder");
                     pipeline.remove("command");
 
                     // 添加转发handler
                     pipeline.addLast(new TransmissionHandler(outboundChannel));
-
+                    // 读取数据
                     inboundChannel.read();
                     outboundChannel.read();
                 } else {
+                    logger.warn("到目标地址{}：{} 的连接建了失败，关闭客户端链路", forwardCommand.getHost(), forwardCommand.getPort());
                     inboundChannel.writeAndFlush(new FailPacket());
                     inboundChannel.close();
                 }
