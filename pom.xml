@@ -106,9 +106,9 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
 					<excludes>
-						<exclude>/*.xml</exclude>
-						<exclude>/*.yaml</exclude>
-						<exclude>/*.yml</exclude>
+						<exclude>*.xml</exclude>
+						<exclude>*.yaml</exclude>
+						<exclude>*.yml</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
