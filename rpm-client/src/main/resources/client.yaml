@@ -8,7 +8,7 @@ serverConf:
   port: 9999
   sid: xdkjadfqwwefasdfasdfel123
 
-# 转发配置
+# 经由服务端转发的配置列表
 forwardOverServer:
 - forwardHost: 127.0.0.1
   forwardPort: 8800
