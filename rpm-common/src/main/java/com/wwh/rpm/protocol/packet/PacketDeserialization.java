@@ -13,6 +13,7 @@ import com.wwh.rpm.protocol.packet.auth.AuthPacket;
 import com.wwh.rpm.protocol.packet.auth.RegistPacket;
 import com.wwh.rpm.protocol.packet.auth.TokenPacket;
 import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
+import com.wwh.rpm.protocol.packet.control.ShutdownPacket;
 import com.wwh.rpm.protocol.packet.general.FailPacket;
 import com.wwh.rpm.protocol.packet.general.ResultPacket;
 import com.wwh.rpm.protocol.packet.general.SuccessPacket;
@@ -47,6 +48,8 @@ public class PacketDeserialization {
             break;
         case TYPE_FORWARD_COMMAND:
             return serialization.deserialize(bytes, ForwardCommandPacket.class);
+        case TYPE_SHUTDOWN:
+            return serialization.deserialize(bytes, ShutdownPacket.class);
         }
 
         throw new RPMException("未知的数据包类型：" + type);

@@ -62,4 +62,9 @@ public class ProtocolConstants {
      * 转发指令
      */
     public static final byte TYPE_FORWARD_COMMAND = 31;
+
+    /**
+     * 关闭指令
+     */
+    public static final byte TYPE_SHUTDOWN = 100;
 }

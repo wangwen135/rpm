@@ -64,7 +64,6 @@ public class MasterServer {
 
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
-        // b.childOption(ChannelOption.AUTO_READ, false);
         b.childOption(ChannelOption.TCP_NODELAY, true);
 
         b.childHandler(new MasterHandlerInitializer(this));
@@ -76,8 +75,8 @@ public class MasterServer {
         channel.closeFuture().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                logger.warn(future.channel().toString() + " 服务端关闭");
-                serverManager.shutdownNotify();
+                logger.info("主服务关闭！");
+                serverManager.close();
             }
         });
 
