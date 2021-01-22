@@ -6,12 +6,12 @@ host: 0.0.0.0
 # 主服务监听端口
 port: 9999
 
+# 加密方式
 encryption: 1
+
+# 控制端口，默认56791
+ctrlPort: 56791
 
 # 经由客户端转发的列表
 forwardOverClient:
 
-# 其他参数
-arguments:
-  enableNettyLog: true
-  nettyLogLevel: INFO

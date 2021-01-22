@@ -18,6 +18,11 @@ public class ClientConfig {
     private String cid;
 
     /**
+     * 客户端控制端口
+     */
+    private Integer ctrlPort;
+
+    /**
      * 服务端配置
      */
     private ServerConf serverConf;
@@ -64,35 +69,44 @@ public class ClientConfig {
         this.arguments = arguments;
     }
 
+    public Integer getCtrlPort() {
+        return ctrlPort;
+    }
+
+    public void setCtrlPort(Integer ctrlPort) {
+        this.ctrlPort = ctrlPort;
+    }
+
     @Override
     public String toString() {
-        return "ClientConfig [cid=" + cid + ", serverConf=" + serverConf + ", forwardOverServer=" + forwardOverServer
-                + ", arguments=" + arguments + "]";
+        return "ClientConfig [cid=" + cid + ", ctrlPort=" + ctrlPort + ", serverConf=" + serverConf
+                + ", forwardOverServer=" + forwardOverServer + ", arguments=" + arguments + "]";
     }
 
     public String toPrettyString() {
         StringBuffer sbuf = new StringBuffer();
 
         sbuf.append("\n##############################################\n");
-        sbuf.append("客户端id   cid = ").append(cid).append("\n");
+        sbuf.append("客户端id      cid = ").append(cid).append("\n");
+        sbuf.append("控制端口 ctrlPort = ").append(ctrlPort).append("\n");
 
-        sbuf.append("# 服务器配置：\n");
+        sbuf.append("\n# 服务器配置：\n");
         sbuf.append(serverConf.toPrettyString());
 
         if (forwardOverServer != null && !forwardOverServer.isEmpty()) {
-            sbuf.append("# 客户端经由服务端转发的列表：\n");
+            sbuf.append("\n# 客户端经由服务端转发的列表：\n");
             for (int i = 0; i < forwardOverServer.size(); i++) {
                 sbuf.append("### 配置【").append(i + 1).append("】\n");
                 sbuf.append(forwardOverServer.get(i).toPrettyString());
             }
 
         } else {
-            sbuf.append("# 客户端经由服务端转发的列表为空！");
+            sbuf.append("\n# 客户端经由服务端转发的列表为空！");
         }
 
         // 其他配置
         if (arguments != null) {
-            sbuf.append("# 其他配置：\n");
+            sbuf.append("\n# 其他配置：\n");
             sbuf.append(arguments.toPrettyString());
         }
 

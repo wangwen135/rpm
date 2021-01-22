@@ -6,7 +6,7 @@ serverConf:
   encryption: 1
   host: 127.0.0.1
   port: 9999
-  sid: xdkjadfqwwefasdfasdfel123
+  sid: xdkjadfqwwefasdfasdfel123!
 
 # 经由服务端转发的配置列表
 forwardOverServer:
@@ -15,6 +15,8 @@ forwardOverServer:
   listenHost: 127.0.0.1
   listenPort: 8899
 
+# 控制端口，默认56781
+ctrlPort: 56781
 
 # 其他参数
 arguments:

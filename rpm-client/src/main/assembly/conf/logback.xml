@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration debug="false">
-	<property name="LOG_HOME" value="./logs" />
+	<property name="LOG_HOME" value="../logs" />
 	<property name="maxHistory" value="30" />
 
 	<!-- 控制台输出 -->
@@ -25,12 +25,11 @@
 	</appender>
 
 
-	<root level="INFO">
+	<root level="WARN">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>
 	
-	<logger name="com.wwh.rpm" level="DEBUG"/>
 	<logger name="rpm.msg" level="INFO" />
 
 </configuration>

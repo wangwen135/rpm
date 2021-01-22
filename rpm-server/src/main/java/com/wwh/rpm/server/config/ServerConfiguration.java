@@ -13,7 +13,28 @@ public class ServerConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerConfiguration.class);
 
+    /**
+     * 服务端配置文件名称
+     */
     public static final String SERVER_CONFIG_FILE = "server.yaml";
+
+    /**
+     * 缺省的客户端控制端口
+     */
+    public static final int DEFAULT_SERVER_CTRL_PORT = 56791;
+
+    /**
+     * 获取、打印、检查 配置文件
+     * 
+     * @return
+     * @throws ConfigException
+     */
+    public static ServerConfig getEffectiveConfig() throws ConfigException {
+        ServerConfig config = getServerConfig();
+        printServerConfig(config);
+        check(config);
+        return config;
+    }
 
     public static ServerConfig getServerConfig() throws ConfigException {
         return getServerConfig(SERVER_CONFIG_FILE);
@@ -22,19 +43,25 @@ public class ServerConfiguration {
     public static ServerConfig getServerConfig(String file) throws ConfigException {
         try {
             ServerConfig serverConfig = YamlConfigReader.readConfiguration(file, ServerConfig.class);
-
-            // 默认值处理
-
-            printServerConfig(serverConfig);
-
-            check(serverConfig);
-
+            setDefaultValue(serverConfig);
             return serverConfig;
         } catch (ConfigException e) {
             throw e;
         } catch (Exception e) {
             logger.error("读取配置异常", e);
             throw new ConfigException("读取配置异常：" + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 设置默认值
+     * 
+     * @param config
+     */
+    private static void setDefaultValue(ServerConfig config) {
+        Integer ctrlPort = config.getCtrlPort();
+        if (ctrlPort == null || ctrlPort < 1) {
+            config.setCtrlPort(DEFAULT_SERVER_CTRL_PORT);
         }
     }
 

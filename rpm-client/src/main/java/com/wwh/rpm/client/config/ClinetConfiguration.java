@@ -17,8 +17,35 @@ public class ClinetConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(ClinetConfiguration.class);
 
+    /**
+     * 客户端配置文件名称
+     */
     public static final String CLIENT_CONFIG_FILE = "client.yaml";
 
+    /**
+     * 缺省的客户端控制端口
+     */
+    public static final int DEFAULT_CLIENT_CTRL_PORT = 56781;
+
+    /**
+     * 获取、打印、检查 配置文件
+     * 
+     * @return
+     * @throws ConfigException
+     */
+    public static ClientConfig getEffectiveConfig() throws ConfigException {
+        ClientConfig config = getClientConfig();
+        printClientConfig(config);
+        check(config);
+        return config;
+    }
+
+    /**
+     * 获取配置文件
+     * 
+     * @return
+     * @throws ConfigException
+     */
     public static ClientConfig getClientConfig() throws ConfigException {
         return getClientConfig(CLIENT_CONFIG_FILE);
     }
@@ -26,19 +53,25 @@ public class ClinetConfiguration {
     public static ClientConfig getClientConfig(String file) throws ConfigException {
         try {
             ClientConfig clientConfig = YamlConfigReader.readConfiguration(file, ClientConfig.class);
-
-            // 默认值处理
-
-            printClientConfig(clientConfig);
-
-            check(clientConfig);
-
+            setDefaultValue(clientConfig);
             return clientConfig;
         } catch (ConfigException e) {
             throw e;
         } catch (Exception e) {
             logger.error("读取配置异常", e);
             throw new ConfigException("读取配置异常：" + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 设置默认值
+     * 
+     * @param config
+     */
+    private static void setDefaultValue(ClientConfig config) {
+        Integer ctrlPort = config.getCtrlPort();
+        if (ctrlPort == null || ctrlPort < 1) {
+            config.setCtrlPort(DEFAULT_CLIENT_CTRL_PORT);
         }
     }
 

@@ -47,7 +47,7 @@ class RegistTimeOutTask implements Runnable {
         // 判断是否认证通过
         Attribute<String> attr = ctx.channel().attr(Constants.ATTR_KEY_TOKEN);
         if (StringUtils.isBlank(attr.get())) {
-            logger.warn("客户端注册超时，关闭连接！");
+            logger.warn("客户端注册超时，关闭连接：{}", ctx.channel().remoteAddress());
             ctx.close();
         } else {
             logger.debug("连接：{} 已认证通过，不做任何处理", ctx.channel().toString());
