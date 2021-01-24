@@ -14,9 +14,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * 服务管理器
- * 
- * @author wwh
  *
+ * @author wwh
  */
 public class ServerManager {
 
@@ -59,6 +58,7 @@ public class ServerManager {
 
         logger.info("启动子服务...");
         // 多个子服务复用一个bossGroup和workGroup线程池
+        subserverManager.startAll(bossGroup, workerGroup);
 
     }
 
