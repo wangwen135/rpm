@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.exception.ConfigException;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.ctrl.server.CtrlServer;
 import com.wwh.rpm.server.config.ServerConfiguration;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 
@@ -17,6 +18,8 @@ import com.wwh.rpm.server.config.pojo.ServerConfig;
 public class ServerStarter {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerStarter.class);
+
+    private static volatile boolean isClosing = false;
 
     private static Object lock = new Object();
 
@@ -34,17 +37,20 @@ public class ServerStarter {
         // 读取配置文件
         ServerConfig config;
         try {
-            config = ServerConfiguration.getServerConfig();
+            config = ServerConfiguration.getEffectiveConfig();
         } catch (ConfigException e) {
             logger.error("配置文件错误：\n{}", e.getMessage());
             return;
         }
 
         ServerManager sm = new ServerManager(config);
-
+        CtrlServer cs = new CtrlServer(sm);
         try {
             // 启动服务
             sm.startServer();
+
+            // 启动控制服务
+            cs.start(config.getCtrlPort());
 
             // 注册关闭钩子
             addShutdownHook(sm);
@@ -65,12 +71,16 @@ public class ServerStarter {
             RpmMsgPrinter.printMsg("关闭服务...");
             // 关闭
             sm.shutdownServer();
+            cs.shutdown();
         }
     }
 
     private static void addShutdownHook(ServerManager sm) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.warn("shutdown hook exec");
+            if (!isClosing) {
+                isClosing = true;
+                logger.warn("shutdown hook exec");
+            }
             synchronized (lock) {
                 lock.notifyAll();
             }
@@ -79,6 +89,7 @@ public class ServerStarter {
 
     public static void shutdownNotify() {
         synchronized (lock) {
+            isClosing = true;
             lock.notifyAll();
         }
     }

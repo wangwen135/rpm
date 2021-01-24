@@ -27,6 +27,11 @@ public class ServerConfig {
     private int encryption = 1;
 
     /**
+     * 服务端控制端口
+     */
+    private Integer ctrlPort;
+
+    /**
      * 转发配置
      */
     private List<ForwardOverClient> forwardOverClient;
@@ -81,10 +86,19 @@ public class ServerConfig {
         this.arguments = arguments;
     }
 
+    public Integer getCtrlPort() {
+        return ctrlPort;
+    }
+
+    public void setCtrlPort(Integer ctrlPort) {
+        this.ctrlPort = ctrlPort;
+    }
+
     @Override
     public String toString() {
         return "ServerConfig [sid=" + sid + ", host=" + host + ", port=" + port + ", encryption=" + encryption
-                + ", forwardOverClient=" + forwardOverClient + ", arguments=" + arguments + "]";
+                + ", ctrlPort=" + ctrlPort + ", forwardOverClient=" + forwardOverClient + ", arguments=" + arguments
+                + "]";
     }
 
     public String toPrettyString() {
@@ -95,6 +109,8 @@ public class ServerConfig {
         sbuf.append("监听地址   host = ").append(host).append("\n");
         sbuf.append("监听端口   port = ").append(port).append("\n");
         sbuf.append("加密方式   encryption = ").append(encryption).append("\n");
+        sbuf.append("控制端口   ctrlPort = ").append(ctrlPort).append("\n");
+
 
         if (forwardOverClient != null && !forwardOverClient.isEmpty()) {
             sbuf.append("\n# 服务端经由客户端转发的列表：\n");
