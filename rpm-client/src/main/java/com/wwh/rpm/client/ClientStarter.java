@@ -7,6 +7,7 @@ import com.wwh.rpm.client.config.ClinetConfiguration;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.common.exception.ConfigException;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.ctrl.server.CtrlServer;
 
 /**
  * 客户端启动器
@@ -17,6 +18,8 @@ import com.wwh.rpm.common.utils.RpmMsgPrinter;
 public class ClientStarter {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientStarter.class);
+
+    private static volatile boolean isClosing = false;
 
     private static Object lock = new Object();
 
@@ -34,17 +37,20 @@ public class ClientStarter {
         // 读取配置文件
         ClientConfig config;
         try {
-            config = ClinetConfiguration.getClientConfig();
+            config = ClinetConfiguration.getEffectiveConfig();
         } catch (ConfigException e) {
             logger.error("配置文件错误：\n{}", e.getMessage());
             return;
         }
 
         ClientManager sm = new ClientManager(config);
-
+        CtrlServer cs = new CtrlServer(sm);
         try {
             // 启动客户端
             sm.startClient();
+
+            // 启动控制服务
+            cs.start(config.getCtrlPort());
 
             // 注册关闭钩子
             addShutdownHook();
@@ -65,18 +71,23 @@ public class ClientStarter {
             RpmMsgPrinter.printMsg("关闭客户端...");
             // 关闭
             sm.shutdownClient();
+            cs.shutdown();
         }
     }
 
     private static void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.debug("shutdown hook exec");
+            if (!isClosing) {
+                isClosing = true;
+                logger.warn("shutdown hook exec");
+            }
             shutdownNotify();
         }));
     }
 
     public static void shutdownNotify() {
         synchronized (lock) {
+            isClosing = true;
             lock.notifyAll();
         }
     }

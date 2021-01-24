@@ -8,11 +8,12 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.client.base.BaseClient;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.subserver.SubserverManager;
+import com.wwh.rpm.ctrl.Closeer;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
-public class ClientManager {
+public class ClientManager implements Closeer {
     private static final Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
     private ClientConfig config;
@@ -59,16 +60,9 @@ public class ClientManager {
         logger.info("关闭子服务...");
         subserverManager.stopAll();
 
-        logger.info("关闭线程池");
+        logger.info("关闭线程池...");
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-    }
-
-    /**
-     * 关闭通知
-     */
-    public void shutdownNotify() {
-        ClientStarter.shutdownNotify();
     }
 
     public String getToken() {
@@ -77,6 +71,11 @@ public class ClientManager {
 
     public ClientConfig getConfig() {
         return config;
+    }
+
+    @Override
+    public void close() {
+        ClientStarter.shutdownNotify();
     }
 
 }

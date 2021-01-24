@@ -64,7 +64,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             TokenPacket token = (TokenPacket) msg;
             handleTokenPacket(ctx, token);
         } else {
-            logger.warn("【主服务】认证处理收到异常包：{}", msg);
+            logger.warn("【主服务】认证处理收到异常包：{}，来自地址：{}", msg, ctx.channel().remoteAddress());
             throw new RPMException("客户端未注册！");
         }
     }
@@ -142,7 +142,9 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        logger.error("【主服务】客户端认证异常，关闭连接", cause);
+        logger.warn("【主服务】客户端认证异常：{}，关闭连接：{}", cause.getMessage(), ctx.channel().remoteAddress());
+        logger.debug("错误信息：", cause);
+
         ctx.close();
     }
 

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.ctrl.Closeer;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 import com.wwh.rpm.server.master.MasterServer;
 import com.wwh.rpm.server.subserver.SubserverManager;
@@ -17,7 +18,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
  *
  * @author wwh
  */
-public class ServerManager {
+public class ServerManager implements Closeer {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerManager.class);
 
@@ -69,7 +70,7 @@ public class ServerManager {
         logger.info("关闭子服务...");
         subserverManager.stopAll();
 
-        logger.info("关闭线程池");
+        logger.info("关闭线程池...");
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
     }
@@ -78,10 +79,8 @@ public class ServerManager {
         return config;
     }
 
-    /**
-     * 关闭通知
-     */
-    public void shutdownNotify() {
+    @Override
+    public void close() {
         ServerStarter.shutdownNotify();
     }
 }

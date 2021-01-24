@@ -16,7 +16,5 @@ forwardOverServer:
   listenPort: 8899
 
 
-# 其他参数
-arguments:
-  enableNettyLog: true
-  nettyLogLevel: INFO
+# 控制端口，默认56781
+ctrlPort: 56781
