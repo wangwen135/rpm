@@ -10,10 +10,10 @@ serverConf:
 
 # 经由服务端转发的配置列表
 forwardOverServer:
-- forwardHost: 127.0.0.1
-  forwardPort: 8800
+- forwardHost: 139.9.78.59
+  forwardPort: 61122
   listenHost: 127.0.0.1
-  listenPort: 8899
+  listenPort: 61122
 
 
 # 其他参数

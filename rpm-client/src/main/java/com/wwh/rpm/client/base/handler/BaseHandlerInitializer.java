@@ -46,6 +46,10 @@ public class BaseHandlerInitializer extends ChannelInitializer<SocketChannel> {
         // 心跳处理
         pipeline.addLast(new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, DEFAULT_HEARTBEAT, 0, TimeUnit.SECONDS));
         pipeline.addLast(new ClientHeartbeatHandler());
+
+        // 服务端指令处理
+        pipeline.addLast(new CommandHandler(baseClient));
+
     }
 
 }
