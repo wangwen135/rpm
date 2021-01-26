@@ -94,10 +94,12 @@ public class MasterServer {
      * @param channel
      */
     public void registClient(String cid, String token, Channel channel) {
+        RpmMsgPrinter.printMsg("客户端注册！ cid={}  address={}", cid, channel.remoteAddress());
         clientTokenManager.regist(cid, token, channel);
     }
 
     public void unregistClient(String cid) {
+        RpmMsgPrinter.printMsg("客户端注销！ cid={}", cid);
         clientTokenManager.unregist(cid);
     }
 

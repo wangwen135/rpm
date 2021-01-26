@@ -52,15 +52,8 @@ public class ServerManager implements Closeer {
         logger.info("启动主服务...");
         masterServer.start(bossGroup, workerGroup);
 
-        startSubServer();
-    }
-
-    private void startSubServer() throws Exception {
-
         logger.info("启动子服务...");
-        // 多个子服务复用一个bossGroup和workGroup线程池
         subserverManager.startAll(bossGroup, workerGroup);
-
     }
 
     public void shutdownServer() {
@@ -75,6 +68,9 @@ public class ServerManager implements Closeer {
         workerGroup.shutdownGracefully();
     }
 
+    //应该有一个获取有效的客户端连接的方法
+    //或者等待，等待客户端连接目标服务器
+    
     public ServerConfig getConfig() {
         return config;
     }

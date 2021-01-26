@@ -1,5 +1,7 @@
 package com.wwh.rpm.server.config;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,8 +9,12 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.common.config.YamlConfigReader;
 import com.wwh.rpm.common.exception.ConfigException;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 
+/**
+ * @author wwh
+ */
 public class ServerConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerConfiguration.class);
@@ -76,17 +82,48 @@ public class ServerConfiguration {
         }
 
         if (StringUtils.isBlank(serverConfig.getSid())) {
-            throw new ConfigException("sid不能空");
+            throw new ConfigException("服务端ID【sid】不能空");
         }
 
         if (StringUtils.isBlank(serverConfig.getHost())) {
-            throw new ConfigException("监听地址host不能空");
+            throw new ConfigException("监听地址【host】不能空");
         }
 
         if (serverConfig.getPort() < 1 || serverConfig.getPort() > 65535) {
-            throw new ConfigException("监听端口port配置错误");
+            throw new ConfigException("监听端口【port】配置错误");
         }
 
+        // 转发配置
+        checkForwardOverClient(serverConfig.getForwardOverClient());
+    }
+
+    private static void checkForwardOverClient(List<ForwardOverClient> forwardList) throws ConfigException {
+        if (forwardList == null || forwardList.isEmpty()) {
+            return;
+        }
+        for (int i = 1; i <= forwardList.size(); i++) {
+            ForwardOverClient f = forwardList.get(i - 1);
+
+            if (StringUtils.isBlank(f.getListenHost())) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:listenHost】不能空");
+            }
+
+            if (f.getListenPort() < 1 || f.getListenPort() > 65535) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:listenPort】错误");
+            }
+
+            if (StringUtils.isBlank(f.getClientId())) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:clientId】不能空");
+            }
+
+            if (StringUtils.isBlank(f.getForwardHost())) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:forwardHost】不能空");
+            }
+
+            if (f.getForwardPort() < 1 || f.getForwardPort() > 65535) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:forwardPort】错误");
+            }
+        }
     }
 
 }

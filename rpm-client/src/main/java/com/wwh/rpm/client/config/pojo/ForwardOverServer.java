@@ -48,8 +48,10 @@ public class ForwardOverServer {
 
     public String toPrettyString() {
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append(" *  本地监听  listenHost:listenPort = ").append(listenHost).append(":").append(listenPort).append("\n");
-        sbuf.append(" -> 经由服务端转发至  forwardHost:forwardPort = ").append(forwardHost).append(forwardPort).append("\n");
+        sbuf.append(" *  本地监听  listenHost:listenPort = ").append(listenHost).append(":").append(listenPort)
+                .append("\n");
+        sbuf.append(" -> 经由服务端转发至  forwardHost:forwardPort = ").append(forwardHost).append(":").append(forwardPort)
+                .append("\n");
 
         return sbuf.toString();
     }
