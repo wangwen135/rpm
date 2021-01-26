@@ -2,7 +2,6 @@ package com.wwh.rpm.client.subserver;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,46 +28,40 @@ public class SubserverManager {
      */
     private List<Subserver> subserverList;
 
-    private AtomicBoolean isRunning = new AtomicBoolean(false);
-
     public SubserverManager(ClientManager clientManager) {
         this.clientManager = clientManager;
+        subserverList = new ArrayList<>();
     }
 
     /**
-     * 启动
+     * 启动全部子服务
+     * 
+     * @param bossGroup
+     * @param workerGroup
+     * @throws Exception
      */
     public void startAll(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception {
-        if (!isRunning.compareAndSet(false, true)) {
-            logger.error("客户端正在运行！");
+        List<ForwardOverServer> configList = clientManager.getConfig().getForwardOverServer();
+
+        if (configList == null || configList.isEmpty()) {
+            logger.debug("经由服务端转发的列表为空，无子服务");
             return;
         }
-        List<ForwardOverServer> list = clientManager.getConfig().getForwardOverServer();
-        subserverList = new ArrayList<>(list.size());
 
-        for (ForwardOverServer forwardOverServer : list) {
+        for (ForwardOverServer forwardOverServer : configList) {
             Subserver ser = new Subserver(this, forwardOverServer);
             subserverList.add(ser);
             ser.start(bossGroup, workerGroup);
         }
     }
 
-    public boolean isRunning() {
-        return isRunning.get();
-    }
-
     /**
-     * 停止
+     * 停止全部子服务
      */
     public void stopAll() {
-        if (!isRunning()) {
-            logger.warn("子主服务没有启动");
-            return;
-        }
         for (Subserver subserver : subserverList) {
             subserver.shutdown();
         }
-
     }
 
     public ClientConfig getConfig() {

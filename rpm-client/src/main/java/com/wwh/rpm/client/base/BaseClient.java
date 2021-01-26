@@ -2,6 +2,7 @@ package com.wwh.rpm.client.base;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +10,7 @@ import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.base.handler.BaseHandlerInitializer;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConf;
+import com.wwh.rpm.common.exception.RPMException;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -83,6 +85,9 @@ public class BaseClient {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 logger.warn("客户端【主连接】被关闭！");
+                synchronized (lock) {
+                    lock.notifyAll();
+                }
                 clientManager.close();
             }
         });
@@ -108,7 +113,11 @@ public class BaseClient {
                 e.printStackTrace();
             }
         }
-        return token;
+        if (StringUtils.isBlank(token)) {
+            throw new RPMException("token 为空！");
+        } else {
+            return token;
+        }
     }
 
     public void setToken(String token) {

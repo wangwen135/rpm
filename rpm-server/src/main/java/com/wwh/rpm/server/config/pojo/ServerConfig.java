@@ -111,7 +111,6 @@ public class ServerConfig {
         sbuf.append("加密方式   encryption = ").append(encryption).append("\n");
         sbuf.append("控制端口   ctrlPort = ").append(ctrlPort).append("\n");
 
-
         if (forwardOverClient != null && !forwardOverClient.isEmpty()) {
             sbuf.append("\n# 服务端经由客户端转发的列表：\n");
             for (int i = 0; i < forwardOverClient.size(); i++) {

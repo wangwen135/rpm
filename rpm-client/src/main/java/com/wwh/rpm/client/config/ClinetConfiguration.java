@@ -13,6 +13,9 @@ import com.wwh.rpm.common.config.YamlConfigReader;
 import com.wwh.rpm.common.exception.ConfigException;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
 
+/**
+ * @author wwh
+ */
 public class ClinetConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(ClinetConfiguration.class);
@@ -84,7 +87,7 @@ public class ClinetConfiguration {
             throw new ConfigException("配置文件不能为空");
         }
         if (StringUtils.isBlank(clientConfig.getCid())) {
-            throw new ConfigException("cid不能空");
+            throw new ConfigException("客户端ID【cid】不能空");
         }
         // 服务端配置
         checkServerConf(clientConfig.getServerConf());
@@ -99,20 +102,41 @@ public class ClinetConfiguration {
         }
 
         if (StringUtils.isBlank(serverConf.getSid())) {
-            throw new ConfigException("服务端配置【serverConf:sid】不能空");
+            throw new ConfigException("服务端ID【serverConf:sid】不能空");
         }
 
         if (StringUtils.isBlank(serverConf.getHost())) {
-            throw new ConfigException("服务端配置【serverConf:host】不能空");
+            throw new ConfigException("服务端监听地址【serverConf:host】不能空");
         }
 
         if (serverConf.getPort() < 1 || serverConf.getPort() > 65535) {
-            throw new ConfigException("服务端配置【serverConf:port】错误");
+            throw new ConfigException("服务端监听端口【serverConf:port】错误");
         }
     }
 
-    private static void checkForwardOverServer(List<ForwardOverServer> forwardOverServer) throws ConfigException {
+    private static void checkForwardOverServer(List<ForwardOverServer> forwardList) throws ConfigException {
+        if (forwardList == null || forwardList.isEmpty()) {
+            return;
+        }
+        for (int i = 1; i <= forwardList.size(); i++) {
+            ForwardOverServer f = forwardList.get(i - 1);
 
+            if (StringUtils.isBlank(f.getListenHost())) {
+                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:listenHost】不能空");
+            }
+
+            if (f.getListenPort() < 1 || f.getListenPort() > 65535) {
+                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:listenPort】错误");
+            }
+
+            if (StringUtils.isBlank(f.getForwardHost())) {
+                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:forwardHost】不能空");
+            }
+
+            if (f.getForwardPort() < 1 || f.getForwardPort() > 65535) {
+                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:forwardPort】错误");
+            }
+        }
     }
 
 }

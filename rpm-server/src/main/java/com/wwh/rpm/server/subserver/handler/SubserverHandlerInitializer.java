@@ -22,14 +22,13 @@ public class SubserverHandlerInitializer extends ChannelInitializer<SocketChanne
 
         ChannelPipeline pipeline = ch.pipeline();
 
-        Server
-        Config config = subserver.getConfig();
+        ServerConfig config = subserver.getConfig();
 
         // 日志
         HandlerInitHelper.initNettyLoggingHandler(pipeline, config.getArguments());
 
         // 转发处理
-        pipeline.addLast(new SubserverProxyHandler(subserver));
+       // pipeline.addLast(new SubserverProxyHandler(subserver));
     }
 
 }

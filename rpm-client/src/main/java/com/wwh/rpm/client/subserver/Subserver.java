@@ -15,7 +15,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
- * 子服务
+ * 客户端子服务
  * 
  * @author wangwh
  * @date 2020-12-31
@@ -71,11 +71,11 @@ public class Subserver {
     @Override
     public String toString() {
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append("【子服务】本地监听：");
+        sbuf.append("【子服务】本地监听：\n");
         sbuf.append(forwardConfig.getListenHost());
         sbuf.append(":");
         sbuf.append(forwardConfig.getListenPort());
-        sbuf.append(" 经由服务端转发至 ");
+        sbuf.append("\n经由服务端转发至：\n");
         sbuf.append(forwardConfig.getForwardHost());
         sbuf.append(":");
         sbuf.append(forwardConfig.getForwardHost());

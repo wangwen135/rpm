@@ -1,16 +1,25 @@
 package com.wwh.rpm.server.subserver;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
+import com.wwh.rpm.server.subserver.handler.SubserverHandlerInitializer;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+/**
+ * 服务端的子服务
+ * 
+ * @author wangwh
+ * @date 2021-1-26
+ */
 public class Subserver {
 
     private static final Logger logger = LoggerFactory.getLogger(Subserver.class);
@@ -48,7 +57,6 @@ public class Subserver {
 
     }
 
-
     public void shutdown() {
         try {
             if (channel != null && channel.isActive()) {
@@ -62,11 +70,11 @@ public class Subserver {
     @Override
     public String toString() {
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append("【子服务】本地监听：");
+        sbuf.append("【子服务】本地监听：\n");
         sbuf.append(forwardConfig.getListenHost());
         sbuf.append(":");
         sbuf.append(forwardConfig.getListenPort());
-        sbuf.append(" 经由客户端转发至 ");
+        sbuf.append("\n经由客户端【").append(forwardConfig.getClientId()).append("】转发至：\n");
         sbuf.append(forwardConfig.getForwardHost());
         sbuf.append(":");
         sbuf.append(forwardConfig.getForwardHost());
