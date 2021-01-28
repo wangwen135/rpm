@@ -32,8 +32,23 @@ public class Constants {
      */
     public static final int DEFAULT_HEARTBEAT = 60;
 
+    /**
+     * 客户端等待Token返回的超时时间
+     */
+    public static final int CLIENT_WAIT_TOKEN_TIMEOUT = 5000;
 
+    /**
+     * 获取客户端转发通道超时时间
+     */
+    public static final int ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT = 6000;
+
+    /**
+     * channel 属性键值 用于存储 cid
+     */
     public static final AttributeKey<String> ATTR_KEY_CID = AttributeKey.valueOf("cid");
+    /**
+     * channel 属性键值 用于存储 token
+     */
     public static final AttributeKey<String> ATTR_KEY_TOKEN = AttributeKey.valueOf("token");
 
     // -----------------------------------

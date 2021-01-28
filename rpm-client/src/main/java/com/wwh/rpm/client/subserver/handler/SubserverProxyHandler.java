@@ -43,10 +43,10 @@ public class SubserverProxyHandler extends ChannelInboundHandlerAdapter {
 
         b.handler(new Sub2ServerHandlerInitializer(subserver, inboundChannel));
 
-        String forwardHost = subserver.getConfig().getServerConf().getHost();
-        int forwardPort = subserver.getConfig().getServerConf().getPort();
+        String serverHost = subserver.getConfig().getServerConf().getHost();
+        int serverPort = subserver.getConfig().getServerConf().getPort();
 
-        ChannelFuture f = b.connect(forwardHost, forwardPort);
+        ChannelFuture f = b.connect(serverHost, serverPort);
 
         // 到服务端的通道
         Channel outboundChannel = f.channel();

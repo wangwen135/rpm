@@ -10,6 +10,7 @@ import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.base.handler.BaseHandlerInitializer;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConf;
+import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.exception.RPMException;
 
 import io.netty.bootstrap.Bootstrap;
@@ -24,6 +25,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
  * <pre>
  * 客户端
  * 这个可以走ssl，通讯量比较小，主要用于维持长连接。。
+ * 
+ * 响应服务端的指令
  * </pre>
  * 
  * @author wwh
@@ -108,7 +111,7 @@ public class BaseClient {
         }
         synchronized (lock) {
             try {
-                lock.wait();
+                lock.wait(Constants.CLIENT_WAIT_TOKEN_TIMEOUT);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

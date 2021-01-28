@@ -65,6 +65,14 @@ public class ClientManager implements Closeer {
         workerGroup.shutdownGracefully();
     }
 
+    public EventLoopGroup getBossGroup() {
+        return bossGroup;
+    }
+
+    public EventLoopGroup getWorkerGroup() {
+        return workerGroup;
+    }
+
     public String getToken() {
         return baseClient.getToken();
     }
