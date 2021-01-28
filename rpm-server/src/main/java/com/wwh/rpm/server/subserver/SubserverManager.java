@@ -10,6 +10,7 @@ import com.wwh.rpm.server.ServerManager;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 
 /**
@@ -62,5 +63,10 @@ public class SubserverManager {
 
     public ServerConfig getConfig() {
         return serverManager.getConfig();
+    }
+
+    public Channel acquireClientForwardChannel(Subserver subserver, Channel inboundChannel) {
+        ForwardOverClient forwardConfig = subserver.getForwardConfig();
+        return serverManager.acquireClientForwardChannel(forwardConfig, inboundChannel);
     }
 }

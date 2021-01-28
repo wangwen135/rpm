@@ -23,13 +23,24 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(TransmissionHandler.class);
 
-    private final Channel outboundChannel;
+    private Channel outboundChannel;
 
-    public TransmissionHandler(Channel outboundChannel) {
+    /**
+     * 之后需要设置outboundChannel<br>
+     * 否则无法转发数据
+     */
+    public TransmissionHandler() {
+    }
+
+    public void setOutboundChannel(Channel outboundChannel) {
         this.outboundChannel = outboundChannel;
         if (!outboundChannel.isActive()) {
             throw new RPMException("输出通道不是活动状态");
         }
+    }
+
+    public TransmissionHandler(Channel outboundChannel) {
+        setOutboundChannel(outboundChannel);
     }
 
     @Override
@@ -40,6 +51,9 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(final ChannelHandlerContext ctx, Object msg) {
+        if (outboundChannel == null) {
+            throw new RPMException("输出通道不能为空");
+        }
         if (!outboundChannel.isActive()) {
             logger.debug("【转发】输出通道不是活跃状态，关闭连接");
             ctx.close();
@@ -73,7 +87,7 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
      * 在所有排队写请求刷新后关闭指定的通道。
      */
     private void closeOnFlush(Channel ch) {
-        if (ch.isActive()) {
+        if (ch != null && ch.isActive()) {
             logger.debug("【转发】清空并关闭通道：{}", ch);
             ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }

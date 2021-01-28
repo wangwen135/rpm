@@ -34,6 +34,10 @@ public class Subserver {
         this.forwardConfig = forwardOverClient;
     }
 
+    public SubserverManager getSubserverManager() {
+        return subserverManager;
+    }
+
     /**
      * 启动
      *
@@ -83,6 +87,14 @@ public class Subserver {
 
     public ServerConfig getConfig() {
         return subserverManager.getConfig();
+    }
+
+    public ForwardOverClient getForwardConfig() {
+        return forwardConfig;
+    }
+
+    public Channel acquireClientForwardChannel(Channel inboundChannel) {
+        return subserverManager.acquireClientForwardChannel(this, inboundChannel);
     }
 
 }
