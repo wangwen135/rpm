@@ -51,6 +51,15 @@ public class Constants {
      */
     public static final AttributeKey<String> ATTR_KEY_TOKEN = AttributeKey.valueOf("token");
 
+    /**
+     * 编码器名称
+     */
+    public static final String ENCODE_HANDLER_NAME = "encoder";
+    /**
+     * 解码器名称
+     */
+    public static final String DECODE_HANDLER_NAME = "decoder";
+
     // -----------------------------------
 
     public static final int DEFAULT_WEIGHT = 100;
