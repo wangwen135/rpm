@@ -1,5 +1,6 @@
 package com.wwh.rpm.server.master.handler;
 
+import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.handler.HandlerInitHelper;
 import com.wwh.rpm.protocol.codec.PacketDecoder;
 import com.wwh.rpm.protocol.codec.PacketEncoder;
@@ -34,14 +35,14 @@ public class MasterHandlerInitializer extends ChannelInitializer<SocketChannel> 
         p.addLast(new AuthTimeoutHandler());
 
         // 先添加编码器
-        p.addLast("decoder", new PacketDecoder());
-        p.addLast("encoder", new PacketEncoder());
+        p.addLast(Constants.ENCODE_HANDLER_NAME, new PacketDecoder());
+        p.addLast(Constants.DECODE_HANDLER_NAME, new PacketEncoder());
 
         // 认证
         p.addLast("auth", new AuthenticationHandler(masterServer));
 
         // 指令处理
-        p.addLast("command", new CommandHandler());
+        p.addLast(Constants.COMMAND_HANDLER_NAME, new CommandHandler(masterServer));
     }
 
 }

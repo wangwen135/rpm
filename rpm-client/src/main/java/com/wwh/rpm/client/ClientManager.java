@@ -7,18 +7,26 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.base.BaseClient;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
+import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.client.subserver.SubserverManager;
 import com.wwh.rpm.ctrl.Closeer;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
+/**
+ * 客户端管理器
+ * 
+ * @author wangwh
+ */
 public class ClientManager implements Closeer {
     private static final Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
     private ClientConfig config;
     private BaseClient baseClient;
     private SubserverManager subserverManager;
+
+    private ConnectionProvider connectionProvider;
 
     // 一次性
     private AtomicBoolean isStartup = new AtomicBoolean(false);
@@ -30,7 +38,7 @@ public class ClientManager implements Closeer {
         this.config = config;
         baseClient = new BaseClient(this);
         subserverManager = new SubserverManager(this);
-
+        connectionProvider = new ConnectionProvider(this);
         // 创建线程池
         int bossPoolSize = config.getForwardOverServer() == null ? 1 : config.getForwardOverServer().size();
         bossGroup = new NioEventLoopGroup(bossPoolSize);
@@ -79,6 +87,10 @@ public class ClientManager implements Closeer {
 
     public ClientConfig getConfig() {
         return config;
+    }
+
+    public ConnectionProvider getConnectionProvider() {
+        return connectionProvider;
     }
 
     @Override

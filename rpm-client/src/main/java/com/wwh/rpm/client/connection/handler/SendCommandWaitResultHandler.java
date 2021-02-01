@@ -41,8 +41,9 @@ public class SendCommandWaitResultHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(packet);
             // 读取数据
             ctx.read();
+        } else {
+            super.userEventTriggered(ctx, evt);
         }
-        super.userEventTriggered(ctx, evt);
     }
 
     @Override

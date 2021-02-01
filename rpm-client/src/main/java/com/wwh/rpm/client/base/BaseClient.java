@@ -10,6 +10,7 @@ import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.base.handler.BaseHandlerInitializer;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConf;
+import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.exception.RPMException;
 
@@ -133,5 +134,9 @@ public class BaseClient {
 
     public ClientConfig getConfig() {
         return clientManager.getConfig();
+    }
+
+    public ConnectionProvider getConnectionProvider() {
+        return clientManager.getConnectionProvider();
     }
 }

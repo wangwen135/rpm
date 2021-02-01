@@ -6,12 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.ctrl.Closeer;
-import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 import com.wwh.rpm.server.master.MasterServer;
 import com.wwh.rpm.server.subserver.SubserverManager;
 
-import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
@@ -70,15 +68,12 @@ public class ServerManager implements Closeer {
         workerGroup.shutdownGracefully();
     }
 
-    /**
-     * 获取客户端转发通道，阻塞
-     * 
-     * @param forwardConfig
-     * @param inboundChannel
-     * @return 成功时返回通道，失败或超时抛出异常
-     */
-    public Channel acquireClientForwardChannel(ForwardOverClient forwardConfig, Channel inboundChannel) {
-        return masterServer.acquireClientForwardChannel(forwardConfig, inboundChannel);
+    public MasterServer getMasterServer() {
+        return masterServer;
+    }
+
+    public SubserverManager getSubserverManager() {
+        return subserverManager;
     }
 
     public ServerConfig getConfig() {

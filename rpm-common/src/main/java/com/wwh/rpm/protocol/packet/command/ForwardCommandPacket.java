@@ -47,4 +47,9 @@ public class ForwardCommandPacket extends AbstractPacket {
         this.port = port;
     }
 
+    @Override
+    public String toString() {
+        return "ForwardCommandPacket [id=" + id + ", host=" + host + ", port=" + port + "]";
+    }
+
 }

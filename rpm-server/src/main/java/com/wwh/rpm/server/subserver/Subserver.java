@@ -93,8 +93,13 @@ public class Subserver {
         return forwardConfig;
     }
 
-    public Channel acquireClientForwardChannel(Channel inboundChannel) {
-        return subserverManager.acquireClientForwardChannel(this, inboundChannel);
+    /**
+     * 获取一个客户端的转发通道，阻塞
+     * 
+     * @return
+     */
+    public Channel acquireClientForwardChannel() {
+        return subserverManager.acquireClientForwardChannel(this);
     }
 
 }

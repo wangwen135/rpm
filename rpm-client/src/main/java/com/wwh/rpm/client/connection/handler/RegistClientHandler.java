@@ -23,10 +23,16 @@ public class RegistClientHandler extends ChannelInboundHandlerAdapter {
 
     private String token;
     private FetchChannelWarp fetchChannelWarp;
+    private boolean notifyFetchChannelWarp = false;
 
     public RegistClientHandler(String token, FetchChannelWarp fetchChannelWarp) {
+        this(token, fetchChannelWarp, false);
+    }
+
+    public RegistClientHandler(String token, FetchChannelWarp fetchChannelWarp, boolean notifyFetchChannelWarp) {
         this.token = token;
         this.fetchChannelWarp = fetchChannelWarp;
+        this.notifyFetchChannelWarp = notifyFetchChannelWarp;
     }
 
     @Override
@@ -35,8 +41,13 @@ public class RegistClientHandler extends ChannelInboundHandlerAdapter {
             logger.debug("服务端返回 注册成功！");
             // 注册成功移除处理器
             ctx.pipeline().remove(this);
-            // 通知下一个处理器
-            ctx.fireUserEventTriggered(new RegistSuccessEvent());
+
+            if (notifyFetchChannelWarp) {
+                fetchChannelWarp.setSuccess(ctx.channel());
+            } else {
+                // 通知下一个处理器
+                ctx.fireUserEventTriggered(new RegistSuccessEvent());
+            }
         } else {
             RPMException e = new RPMException("注册失败");
             // 关闭链路

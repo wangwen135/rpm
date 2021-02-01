@@ -111,9 +111,9 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             registered = true;
 
             // 心跳处理 这个只有客户端主连接需要加，普通的转发连接不需要
-            ctx.pipeline().addAfter("encoder", "idle",
+            ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "idle",
                     new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
-            ctx.pipeline().addAfter("encoder", "heartbeat", new HeartbeatHandler());
+            ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "heartbeat", new HeartbeatHandler());
 
         } else {
             throw new RPMException("随机数不正确，客户端认证失败！");
