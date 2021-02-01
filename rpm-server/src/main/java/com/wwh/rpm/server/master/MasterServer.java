@@ -1,17 +1,12 @@
 package com.wwh.rpm.server.master;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
-import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
 import com.wwh.rpm.server.ServerManager;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
@@ -25,6 +20,11 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+/**
+ * 主服务
+ * 
+ * @author wwh
+ */
 public class MasterServer {
 
     private static final Logger logger = LoggerFactory.getLogger(MasterServer.class);
@@ -33,9 +33,9 @@ public class MasterServer {
 
     private ClientTokenManager clientTokenManager;
 
-    private AtomicBoolean isRunning = new AtomicBoolean(false);
+    private ForwardManager forwardManager;
 
-    private AtomicLong idGenerator = new AtomicLong(0);
+    private AtomicBoolean isRunning = new AtomicBoolean(false);
 
     private Channel channel;
     // 客户端列表
@@ -43,6 +43,7 @@ public class MasterServer {
     public MasterServer(ServerManager serverManager) {
         this.serverManager = serverManager;
         this.clientTokenManager = new ClientTokenManager();
+        this.forwardManager = new ForwardManager(this);
     }
 
     public boolean isRunning() {
@@ -90,6 +91,11 @@ public class MasterServer {
 
     }
 
+    /**
+     * 获取配置
+     * 
+     * @return
+     */
     public ServerConfig getConfig() {
         return serverManager.getConfig();
     }
@@ -106,11 +112,22 @@ public class MasterServer {
         clientTokenManager.regist(cid, token, channel);
     }
 
+    /**
+     * 注销客户端
+     * 
+     * @param cid
+     */
     public void unregistClient(String cid) {
         RpmMsgPrinter.printMsg("客户端注销！ cid={}", cid);
         clientTokenManager.unregist(cid);
     }
 
+    /**
+     * 验证token
+     * 
+     * @param token
+     * @return token对应客户端的cid
+     */
     public String validateToken(String token) {
         String cid = clientTokenManager.getCidByToken(token);
         if (cid == null) {
@@ -120,68 +137,33 @@ public class MasterServer {
         }
     }
 
-    private Long nextId() {
-        return idGenerator.incrementAndGet();
+    /**
+     * 根据cid获取对应客户端的主Channel
+     * 
+     * @param cid
+     * @return
+     */
+    public Channel getChannelByCid(String cid) {
+        return clientTokenManager.getChannelByCid(cid);
     }
-
-    // --------------------------------------------
 
     /**
-     * 保存转发通道
+     * 获取转发管理器
+     * 
+     * @return
      */
-    private Map<Long, Channel> forwardChannelMap = new ConcurrentHashMap<>();
+    public ForwardManager getForwardManager() {
+        return forwardManager;
+    }
+
     /**
-     * 保存等待对象
+     * 获取一个客户端的转发通道，阻塞
+     * 
+     * @param forwardConfig
+     * @return 成功时返回通道，失败或超时抛出异常
      */
-    private Map<Long, Object> waitObjMap = new ConcurrentHashMap<>();
-
-    public void receiveClientChannel(long id, Channel forwardChannel) {
-        Object lock = waitObjMap.get(id);
-        if (lock == null) {
-            throw new RPMException("Id对应的等待对象不存在，可能超时了");
-        }
-        forwardChannelMap.put(id, forwardChannel);
-        synchronized (lock) {
-            lock.notify();
-        }
+    public Channel acquireClientForwardChannel(ForwardOverClient forwardConfig) {
+        return forwardManager.acquireClientForwardChannel(forwardConfig);
     }
 
-    public Channel acquireClientForwardChannel(ForwardOverClient forwardConfig, Channel inboundChannel) {
-        String clientId = forwardConfig.getClientId();
-        // 先找客户端是否存在
-        Channel clientMasterChannel = clientTokenManager.getChannelByCid(clientId);
-        if (clientMasterChannel == null) {
-            throw new RPMException("客户端：" + clientId + " 未上线");
-        }
-        if (!clientMasterChannel.isActive()) {
-            throw new RPMException("客户端：" + clientId + " 主连接不是活动状态");
-        }
-
-        // 像客户端发送转发指令包
-        ForwardCommandPacket fcPacket = new ForwardCommandPacket();
-        Long id = nextId();
-        fcPacket.setId(id);
-        fcPacket.setHost(forwardConfig.getForwardHost());
-        fcPacket.setPort(forwardConfig.getForwardPort());
-
-        clientMasterChannel.writeAndFlush(fcPacket);
-
-        Object obj = new Object();
-        waitObjMap.put(id, obj);
-
-        synchronized (obj) {
-            try {
-                obj.wait(Constants.ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT);
-            } catch (InterruptedException e) {
-                logger.error("等待客户端转发通道时被中断");
-            }
-        }
-        waitObjMap.remove(id);
-        Channel transferChannel = forwardChannelMap.remove(id);
-        if (transferChannel == null) {
-            throw new RPMException("没有获取到客户端的转发通道");
-        }
-
-        return transferChannel;
-    }
 }

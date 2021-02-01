@@ -60,6 +60,11 @@ public class Constants {
      */
     public static final String DECODE_HANDLER_NAME = "decoder";
 
+    /**
+     * 指令处理器名称
+     */
+    public static final String COMMAND_HANDLER_NAME = "command";
+
     // -----------------------------------
 
     public static final int DEFAULT_WEIGHT = 100;

@@ -36,12 +36,15 @@ public class RemoteChannelBuildHandler extends ChannelInboundHandlerAdapter {
 
         // 请求一个客户端通道
         // 阻塞方法
-        outboundChannel = subserver.acquireClientForwardChannel(inboundChannel);
+        outboundChannel = subserver.acquireClientForwardChannel();
+
         // 添加转发handler
         ChannelPipeline pipeline = ctx.pipeline();
         pipeline.addLast(new TransmissionHandler(outboundChannel));
-
         pipeline.remove(this);
+
+        outboundChannel.pipeline().addLast(new TransmissionHandler(inboundChannel));
+
         inboundChannel.read();
         outboundChannel.read();
     }

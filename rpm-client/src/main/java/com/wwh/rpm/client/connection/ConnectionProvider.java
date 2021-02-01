@@ -101,20 +101,6 @@ public class ConnectionProvider {
 
     /**
      * <pre>
-     * 获取到服务端的连接
-     * 只完成注册动作
-     * 包含编码解码处理器
-     * </pre>
-     * 
-     * @return
-     * @throws Exception
-     */
-    public FetchChannelWarp getConnection2Server() throws Exception {
-        return null;
-    }
-
-    /**
-     * <pre>
      * 获取到服务端的连接（不自动读取数据）
      * 发送指令并等待返回成功
      * 移除编码解码器
@@ -122,9 +108,8 @@ public class ConnectionProvider {
      * 
      * @param packet 待发送的指令
      * @return Channel的包装对象
-     * @throws Exception
      */
-    public FetchChannelWarp getCleanConnection2Server(AbstractPacket packet) throws Exception {
+    public FetchChannelWarp getCleanConnection2Server(AbstractPacket packet) {
         final FetchChannelWarp warp = new FetchChannelWarp();
 
         ServerConf serverConf = clientManager.getConfig().getServerConf();
@@ -169,12 +154,17 @@ public class ConnectionProvider {
         return warp.getChannelOnce();
     }
 
-    // 获取到目标的连接
-    // 是否自动读取
-
-    // 获取到服务器的连接
-    // 是否发送指令
-
-    // 是否清空handler
+    /**
+     * <pre>
+     * 获取到服务端的连接
+     * 只完成注册动作
+     * 包含编码/解码处理器
+     * </pre>
+     * 
+     * @return
+     */
+    public FetchChannelWarp getConnection2Server() {
+        return getCleanConnection2Server(null);
+    }
 
 }

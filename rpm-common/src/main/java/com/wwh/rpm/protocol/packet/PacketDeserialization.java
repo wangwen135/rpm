@@ -13,6 +13,7 @@ import com.wwh.rpm.protocol.packet.auth.AuthPacket;
 import com.wwh.rpm.protocol.packet.auth.RegistPacket;
 import com.wwh.rpm.protocol.packet.auth.TokenPacket;
 import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
+import com.wwh.rpm.protocol.packet.command.ForwardResultPacket;
 import com.wwh.rpm.protocol.packet.control.ShutdownPacket;
 import com.wwh.rpm.protocol.packet.general.FailPacket;
 import com.wwh.rpm.protocol.packet.general.ResultPacket;
@@ -48,6 +49,8 @@ public class PacketDeserialization {
             break;
         case TYPE_FORWARD_COMMAND:
             return serialization.deserialize(bytes, ForwardCommandPacket.class);
+        case TYPE_FORWARD_COMMAND_RESULT:
+            return serialization.deserialize(bytes, ForwardResultPacket.class);
         case TYPE_SHUTDOWN:
             return serialization.deserialize(bytes, ShutdownPacket.class);
         }

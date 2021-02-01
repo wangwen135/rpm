@@ -3,11 +3,14 @@ package com.wwh.rpm.server.master.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.common.handler.TransmissionHandler;
 import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
+import com.wwh.rpm.protocol.packet.command.ForwardResultPacket;
 import com.wwh.rpm.protocol.packet.general.FailPacket;
 import com.wwh.rpm.protocol.packet.general.SuccessPacket;
+import com.wwh.rpm.server.master.MasterServer;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -26,6 +29,11 @@ import io.netty.channel.ChannelPipeline;
  */
 public class CommandHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
+    private MasterServer masterServer;
+
+    public CommandHandler(MasterServer masterServer) {
+        this.masterServer = masterServer;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -34,9 +42,32 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof ForwardCommandPacket) {
             ForwardCommandPacket fcp = (ForwardCommandPacket) msg;
             forwardCommandHandler(ctx, fcp);
+        } else if (msg instanceof ForwardResultPacket) {
+            ForwardResultPacket frp = (ForwardResultPacket) msg;
+            forwardResultHandler(ctx, frp);
         } else {
             throw new RPMException("暂不支持！msg class : " + msg.getClass());
         }
+    }
+
+    private void forwardResultHandler(ChannelHandlerContext ctx, ForwardResultPacket forwardResult) {
+        long fId = forwardResult.getId();
+        if (!forwardResult.getResult()) {
+            RPMException cause = new RPMException("客户端无法建立连接");
+            masterServer.getForwardManager().receiveClientChannelError(fId, cause);
+            return;
+        }
+        // 转发指令成功
+        ctx.writeAndFlush(new SuccessPacket());
+
+        // 移除编码器和指令处理器
+        ChannelPipeline pipeline = ctx.pipeline();
+        pipeline.remove(Constants.ENCODE_HANDLER_NAME);
+        pipeline.remove(Constants.DECODE_HANDLER_NAME);
+        pipeline.remove(this);
+
+        // 通知
+        masterServer.getForwardManager().receiveClientChannel(fId, ctx.channel());
     }
 
     private void forwardCommandHandler(ChannelHandlerContext ctx, ForwardCommandPacket forwardCommand) {
@@ -65,9 +96,9 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
 
                     ChannelPipeline pipeline = ctx.pipeline();
                     // 移除编码器和指令处理器
-                    pipeline.remove("decoder");
-                    pipeline.remove("encoder");
-                    pipeline.remove("command");
+                    pipeline.remove(Constants.ENCODE_HANDLER_NAME);
+                    pipeline.remove(Constants.DECODE_HANDLER_NAME);
+                    pipeline.remove(Constants.COMMAND_HANDLER_NAME);
 
                     // 添加转发handler
                     pipeline.addLast(new TransmissionHandler(outboundChannel));

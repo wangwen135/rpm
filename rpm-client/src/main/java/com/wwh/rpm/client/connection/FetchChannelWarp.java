@@ -25,6 +25,8 @@ public class FetchChannelWarp {
 
     private volatile boolean isTimeout = false;
 
+    private volatile boolean isClose = false;
+
     private boolean isCalled = false;
 
     /**
@@ -86,29 +88,59 @@ public class FetchChannelWarp {
         return null;
     }
 
+    /**
+     * 通道建立成功时调用
+     * 
+     * @param channel 成功获取到的通道
+     */
     public void setSuccess(Channel channel) {
-        if (isTimeout) {
+        if (isClose) {
             closeChannel(channel);
-            throw new RPMException("等待链接方认为超时了");
+            this.cause = new RPMException("已经关闭");
+        } else if (isTimeout) {
+            closeChannel(channel);
+            this.cause = new RPMException("已经超时");
+        } else {
+            this.channel = channel;
         }
-
-        this.channel = channel;
         synchronized (lock) {
             lock.notifyAll();
         }
     }
 
+    /**
+     * 通道建立失败时调用
+     * 
+     * @param cause 失败原因
+     */
     public void setError(Throwable cause) {
-        if (isTimeout) {
-            closeChannel(channel);
-            throw new RPMException("等待链接方认为超时了");
+        if (isClose) {
+            cause = new RPMException("已经标记为关闭", cause);
+        } else if (isTimeout) {
+            cause = new RPMException("等待链接方认为超时了", cause);
         }
         this.cause = cause;
+        closeChannel(channel);
+        this.channel = null;
         synchronized (lock) {
             lock.notifyAll();
         }
     }
 
+    /**
+     * 关闭或标记为关闭<br>
+     * 如果标记为关闭，当连接进入时会将其关闭
+     */
+    public void close() {
+        this.isClose = true;
+        closeChannel(channel);
+    }
+
+    /**
+     * 是否超时
+     * 
+     * @return
+     */
     public boolean isTimeout() {
         return isTimeout;
     }

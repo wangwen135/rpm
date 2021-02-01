@@ -65,8 +65,14 @@ public class SubserverManager {
         return serverManager.getConfig();
     }
 
-    public Channel acquireClientForwardChannel(Subserver subserver, Channel inboundChannel) {
+    /**
+     * 获取一个客户端的转发通道，阻塞
+     * 
+     * @param subserver
+     * @return
+     */
+    public Channel acquireClientForwardChannel(Subserver subserver) {
         ForwardOverClient forwardConfig = subserver.getForwardConfig();
-        return serverManager.acquireClientForwardChannel(forwardConfig, inboundChannel);
+        return serverManager.getMasterServer().acquireClientForwardChannel(forwardConfig);
     }
 }

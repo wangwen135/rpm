@@ -13,6 +13,12 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 
+/**
+ * 到服务端的channel的handler初始化
+ * 
+ * @author wangwh
+ * @date 2021-1-29
+ */
 public class ToServerHandlerInitializer extends ChannelInitializer<SocketChannel> {
 
     private ClientManager clientManager;
@@ -39,13 +45,14 @@ public class ToServerHandlerInitializer extends ChannelInitializer<SocketChannel
 
         String token = clientManager.getToken();
 
-        // TODO 如果不发指令，则需要通知出来
-        // 客户端注册
-        pipeline.addLast("regist", new RegistClientHandler(token, fetchChannelWarp));
-
         if (packet != null) {
+            // 客户端注册
+            pipeline.addLast("regist", new RegistClientHandler(token, fetchChannelWarp));
             // 发送指令等待结果
             pipeline.addLast("sendCommandWaitResult", new SendCommandWaitResultHandler(packet, fetchChannelWarp));
+        } else {
+            // 客户端注册 如果不发指令，则需要通知出来
+            pipeline.addLast("regist", new RegistClientHandler(token, fetchChannelWarp, true));
         }
     }
 
