@@ -23,14 +23,14 @@ public class Constants {
     public static final int DEFAULT_REGIST_TIMEOUT = 10;
 
     /**
-     * 服务端默认超过200秒没有收到心跳则关闭连接
+     * 指定时间内没有收到心跳则关闭连接（秒）
      */
-    public static final int DEFAULT_IDLE_TIMEOUT = 200;
+    public static final int DEFAULT_IDLE_TIMEOUT = 100;
 
     /**
      * 客户端默认发送心跳的频率（秒）
      */
-    public static final int DEFAULT_HEARTBEAT = 60;
+    public static final int DEFAULT_HEARTBEAT = 30;
 
     /**
      * 客户端等待Token返回的超时时间

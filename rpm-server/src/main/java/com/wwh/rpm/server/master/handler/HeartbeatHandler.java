@@ -22,7 +22,7 @@ public class HeartbeatHandler extends SimpleChannelInboundHandler<HearbeatPacket
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HearbeatPacket msg) throws Exception {
-        logger.info("收到来自：{} 的心跳包", ctx.channel().remoteAddress().toString());
+        logger.debug("收到来自：{} 的心跳包，并进行回复", ctx.channel().remoteAddress().toString());
         // 回复一个心跳包
         ctx.writeAndFlush(new HearbeatPacket());
     }
