@@ -87,7 +87,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void handleAuthPacket(ChannelHandlerContext ctx, AuthPacket authPacket) {
-        logger.debug("【主服务】处理认证包");
+        logger.debug("【主服务】开始处理认证包...");
         if (StringUtils.isBlank(cid)) {
             throw new RPMException("客户端未注册直接进行认证");
         }
@@ -110,11 +110,11 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             setAttribute(ctx);
             registered = true;
 
+            logger.debug("【主服务】添加心跳处理");
             // 心跳处理 这个只有客户端主连接需要加，普通的转发连接不需要
             ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "idle",
                     new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
             ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "heartbeat", new HeartbeatHandler());
-
         } else {
             throw new RPMException("随机数不正确，客户端认证失败！");
         }

@@ -32,11 +32,12 @@ public class MasterHandlerInitializer extends ChannelInitializer<SocketChannel> 
         ServerConfig config = masterServer.getConfig();
         HandlerInitHelper.initNettyLoggingHandler(p, config.getArguments());
 
+        // 认证超时处理
         p.addLast(new AuthTimeoutHandler());
 
         // 先添加编码器
-        p.addLast(Constants.ENCODE_HANDLER_NAME, new PacketDecoder());
-        p.addLast(Constants.DECODE_HANDLER_NAME, new PacketEncoder());
+        p.addLast(Constants.DECODE_HANDLER_NAME, new PacketDecoder());
+        p.addLast(Constants.ENCODE_HANDLER_NAME, new PacketEncoder());
 
         // 认证
         p.addLast("auth", new AuthenticationHandler(masterServer));
