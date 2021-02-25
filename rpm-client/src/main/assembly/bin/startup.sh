@@ -15,4 +15,4 @@ cd `dirname $0`
 ## 参数支持
 ## 设置了最大内存为1G
 
-java -Xmx1024m -cp ../config:../lib/* $@ com.wwh.rpm.client.ClientStarter
+nohup java -Xmx1024m -cp ../config:../lib/* $@ com.wwh.rpm.client.ClientStarter >rpmClient.out 2>&1 &

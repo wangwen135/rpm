@@ -41,7 +41,8 @@ public class PacketDecoder extends ByteToMessageDecoder {
         // 检查魔法数字
         byte magicNumber = in.readByte();
         if (magicNumber != ProtocolConstants.MAGIC_NUMBER) {
-            in.resetReaderIndex();
+            in.clear(); //直接标记清空，避免重复读取一次
+            //in.resetReaderIndex();
             throw new CorruptedFrameException("Invalid magic number: " + magicNumber);
         }
 
