@@ -41,7 +41,7 @@ public class CodecUtils {
      * @return
      */
     public static String hexEncode(byte[] input) {
-	return Hex.encodeHexString(input);
+        return Hex.encodeHexString(input);
     }
 
     /**
@@ -51,11 +51,11 @@ public class CodecUtils {
      * @return 如果是奇数个将抛出异常
      */
     public static byte[] hexDecode(String input) {
-	try {
-	    return Hex.decodeHex(input.toCharArray());
-	} catch (DecoderException e) {
-	    throw new IllegalStateException("Hex Decoder exception", e);
-	}
+        try {
+            return Hex.decodeHex(input.toCharArray());
+        } catch (DecoderException e) {
+            throw new IllegalStateException("Hex Decoder exception", e);
+        }
     }
 
     /**
@@ -65,7 +65,7 @@ public class CodecUtils {
      * @return
      */
     public static boolean isBase64(String base64) {
-	return Base64.isBase64(base64);
+        return Base64.isBase64(base64);
     }
 
     /**
@@ -75,13 +75,13 @@ public class CodecUtils {
      * @return
      */
     public static String base64Encode(byte[] input) {
-	try {
-	    // byte[] containing Base64 characters in their UTF-8
-	    // representation.
-	    return new String(Base64.encodeBase64(input), "UTF-8");
-	} catch (UnsupportedEncodingException e) {
-	    throw new IllegalArgumentException("Unsupported Encoding Exception", e);
-	}
+        try {
+            // byte[] containing Base64 characters in their UTF-8
+            // representation.
+            return new String(Base64.encodeBase64(input), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported Encoding Exception", e);
+        }
     }
 
     /**
@@ -91,7 +91,7 @@ public class CodecUtils {
      * @return
      */
     public static String base64UrlSafeEncode(byte[] input) {
-	return Base64.encodeBase64URLSafeString(input);
+        return Base64.encodeBase64URLSafeString(input);
     }
 
     /**
@@ -101,7 +101,7 @@ public class CodecUtils {
      * @return
      */
     public static byte[] base64Decode(String input) {
-	return Base64.decodeBase64(input);
+        return Base64.decodeBase64(input);
     }
 
     /**
@@ -111,11 +111,11 @@ public class CodecUtils {
      * @return
      */
     public static String urlEncode(String input) {
-	try {
-	    return URLEncoder.encode(input, DEFAULT_URL_ENCODING);
-	} catch (UnsupportedEncodingException e) {
-	    throw new IllegalArgumentException("Unsupported Encoding Exception", e);
-	}
+        try {
+            return URLEncoder.encode(input, DEFAULT_URL_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported Encoding Exception", e);
+        }
     }
 
     /**
@@ -126,33 +126,33 @@ public class CodecUtils {
      * @return
      */
     public static String urlEncode(String input, String character) {
-	try {
-	    return URLEncoder.encode(input, character);
-	} catch (UnsupportedEncodingException e) {
-	    throw new IllegalArgumentException("Unsupported Encoding Exception", e);
-	}
+        try {
+            return URLEncoder.encode(input, character);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported Encoding Exception", e);
+        }
     }
 
     /**
      * URL 解码, Encode默认为UTF-8.
      */
     public static String urlDecode(String input) {
-	try {
-	    return URLDecoder.decode(input, DEFAULT_URL_ENCODING);
-	} catch (UnsupportedEncodingException e) {
-	    throw new IllegalArgumentException("Unsupported Encoding Exception", e);
-	}
+        try {
+            return URLDecoder.decode(input, DEFAULT_URL_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported Encoding Exception", e);
+        }
     }
 
     /**
      * URL 解码, 使用指定编码
      */
     public static String urlDecode(String input, String character) {
-	try {
-	    return URLDecoder.decode(input, character);
-	} catch (UnsupportedEncodingException e) {
-	    throw new IllegalArgumentException("Unsupported Encoding Exception", e);
-	}
+        try {
+            return URLDecoder.decode(input, character);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Unsupported Encoding Exception", e);
+        }
     }
 
     // =========消息摘要==========
@@ -164,7 +164,7 @@ public class CodecUtils {
      * @return
      */
     public static String md5Hex(String data) {
-	return DigestUtils.md5Hex(data);
+        return DigestUtils.md5Hex(data);
     }
 
     /**
@@ -174,7 +174,7 @@ public class CodecUtils {
      * @return
      */
     public static String md5Hex(InputStream data) throws IOException {
-	return DigestUtils.md5Hex(data);
+        return DigestUtils.md5Hex(data);
     }
 
     /**
@@ -184,7 +184,7 @@ public class CodecUtils {
      * @return
      */
     public static byte[] md5(byte[] data) {
-	return DigestUtils.md5(data);
+        return DigestUtils.md5(data);
     }
 
     /**
@@ -194,7 +194,7 @@ public class CodecUtils {
      * @return
      */
     public static String sha1Hex(String data) {
-	return DigestUtils.sha1Hex(data);
+        return DigestUtils.sha1Hex(data);
     }
 
     /**
@@ -204,7 +204,14 @@ public class CodecUtils {
      * @return
      */
     public static byte[] sha1(byte[] data) {
-	return DigestUtils.sha1(data);
+        return DigestUtils.sha1(data);
     }
 
+    public static byte[] sha256(byte[] data) {
+        return DigestUtils.sha256(data);
+    }
+
+    public static byte[] sha512(byte[] data) {
+        return DigestUtils.sha512(data);
+    }
 }

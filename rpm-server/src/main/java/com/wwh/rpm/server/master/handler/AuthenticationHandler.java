@@ -159,7 +159,9 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         logger.info("【主服务】连接:{} 断开了，取消注册，cid：{}", ctx.channel(), cid);
-        masterServer.unregistClient(cid);
+        if (registered) {
+            masterServer.unregistClient(cid);
+        }
     }
 
     @Override

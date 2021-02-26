@@ -3,7 +3,6 @@ cid: aaaabbbbcc
 
 # 服务端配置
 serverConf:
-  encryption: 1
   host: 127.0.0.1
   port: 9999
   sid: xdkjadfqwwefasdfasdfel123

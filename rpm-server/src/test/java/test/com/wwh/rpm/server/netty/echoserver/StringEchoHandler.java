@@ -29,7 +29,7 @@ public class StringEchoHandler extends SimpleChannelInboundHandler<String> {
             ctx.close();
         } else {
             // 返回
-            ctx.writeAndFlush("\n# you message ：" + message);
+            ctx.writeAndFlush("\n## you message is :" + message);
         }
 
     }

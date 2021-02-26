@@ -10,10 +10,14 @@ import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.common.handler.HandlerInitHelper;
 import com.wwh.rpm.protocol.codec.PacketDecoder;
 import com.wwh.rpm.protocol.codec.PacketEncoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionDecoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionEncoder;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.compression.JdkZlibDecoder;
+import io.netty.handler.codec.compression.JdkZlibEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 
 /**
@@ -35,6 +39,14 @@ public class BaseHandlerInitializer extends ChannelInitializer<SocketChannel> {
         ClientConfig config = baseClient.getConfig();
 
         HandlerInitHelper.initNettyLoggingHandler(pipeline, config.getArguments());
+
+        // 加密
+        pipeline.addLast(new SimpleEncryptionEncoder(config.getServerConf().getSid()));
+        pipeline.addLast(new SimpleEncryptionDecoder(config.getServerConf().getSid()));
+
+        // 压缩
+        pipeline.addLast(new JdkZlibEncoder());
+        pipeline.addLast(new JdkZlibDecoder());
 
         // 先添加编码器
         pipeline.addLast(new PacketDecoder());

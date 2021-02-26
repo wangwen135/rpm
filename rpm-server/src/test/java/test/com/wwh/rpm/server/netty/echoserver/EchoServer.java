@@ -2,6 +2,9 @@ package test.com.wwh.rpm.server.netty.echoserver;
 
 import java.util.concurrent.TimeUnit;
 
+import com.wwh.rpm.protocol.security.SimpleEncryptionDecoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionEncoder;
+
 /*
  * Copyright 2012 The Netty Project
  *
@@ -27,6 +30,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.compression.JdkZlibDecoder;
+import io.netty.handler.codec.compression.JdkZlibEncoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
@@ -40,6 +45,9 @@ import io.netty.handler.timeout.IdleStateHandler;
  * Echoes back any received data from a client.
  */
 public final class EchoServer {
+
+    private static final boolean compression = false;
+    private static final boolean simpleEncryption = true;
 
     static final boolean SSL = System.getProperty("ssl") != null;
     static final int PORT = Integer.parseInt(System.getProperty("port", "8800"));
@@ -70,16 +78,29 @@ public final class EchoServer {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
+
+                            p.addLast(new LoggingHandler(LogLevel.INFO));
+
                             if (sslCtx != null) {
                                 p.addLast(sslCtx.newHandler(ch.alloc()));
                             }
 
-                            p.addLast(new IdleStateHandler(60, 0, 0, TimeUnit.SECONDS));
+                            if (compression) {
+                                // 压缩
+                                p.addLast(new JdkZlibEncoder());
+                                p.addLast(new JdkZlibDecoder());
+                            }
+                            if (simpleEncryption) {
+                                // 简单加密
+                                p.addLast(new SimpleEncryptionEncoder("aaa"));
+                                p.addLast(new SimpleEncryptionDecoder("aaa"));
+                            }
 
-                            // p.addLast(new LoggingHandler(LogLevel.INFO));
                             // 编码解码器
                             p.addLast(new StringDecoder());
                             p.addLast(new StringEncoder());
+
+                            p.addLast(new IdleStateHandler(60, 0, 0, TimeUnit.SECONDS));
 
                             // 告诉管道执行事件的线程
                             // 不在I/O 线程中执行，就不会堵塞IO线程

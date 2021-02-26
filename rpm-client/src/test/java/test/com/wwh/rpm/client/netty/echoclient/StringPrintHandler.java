@@ -6,7 +6,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 @Sharable
 public class StringPrintHandler extends SimpleChannelInboundHandler<String> {
-
+    
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String message) throws Exception {
         System.out.println("收到服务端返回的消息：" + message);

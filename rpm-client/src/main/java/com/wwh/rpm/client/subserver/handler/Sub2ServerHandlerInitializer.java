@@ -6,11 +6,15 @@ import com.wwh.rpm.common.handler.HandlerInitHelper;
 import com.wwh.rpm.common.handler.TransmissionHandler;
 import com.wwh.rpm.protocol.codec.PacketDecoder;
 import com.wwh.rpm.protocol.codec.PacketEncoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionDecoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionEncoder;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.compression.JdkZlibDecoder;
+import io.netty.handler.codec.compression.JdkZlibEncoder;
 
 /**
  * 子服务到服务端的handler初始化
@@ -37,6 +41,14 @@ public class Sub2ServerHandlerInitializer extends ChannelInitializer<SocketChann
 
         // 日志
         HandlerInitHelper.initNettyLoggingHandler(pipeline, config.getArguments());
+
+        // 加密
+        pipeline.addLast(new SimpleEncryptionEncoder(config.getServerConf().getSid()));
+        pipeline.addLast(new SimpleEncryptionDecoder(config.getServerConf().getSid()));
+
+        // 压缩
+        pipeline.addLast(new JdkZlibEncoder());
+        pipeline.addLast(new JdkZlibDecoder());
 
         // 编码器
         pipeline.addLast("encoder", new PacketEncoder());
