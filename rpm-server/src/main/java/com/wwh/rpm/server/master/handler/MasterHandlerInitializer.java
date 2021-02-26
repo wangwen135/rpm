@@ -4,12 +4,16 @@ import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.handler.HandlerInitHelper;
 import com.wwh.rpm.protocol.codec.PacketDecoder;
 import com.wwh.rpm.protocol.codec.PacketEncoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionDecoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionEncoder;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 import com.wwh.rpm.server.master.MasterServer;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.compression.JdkZlibDecoder;
+import io.netty.handler.codec.compression.JdkZlibEncoder;
 
 /**
  * 主服务handler初始化
@@ -31,6 +35,16 @@ public class MasterHandlerInitializer extends ChannelInitializer<SocketChannel> 
 
         ServerConfig config = masterServer.getConfig();
         HandlerInitHelper.initNettyLoggingHandler(p, config.getArguments());
+
+        String sid = masterServer.getConfig().getSid();
+
+        // 加密
+        p.addLast(new SimpleEncryptionEncoder(sid));
+        p.addLast(new SimpleEncryptionDecoder(sid));
+
+        // 压缩
+        p.addLast(new JdkZlibEncoder());
+        p.addLast(new JdkZlibDecoder());
 
         // 认证超时处理
         p.addLast(new AuthTimeoutHandler());

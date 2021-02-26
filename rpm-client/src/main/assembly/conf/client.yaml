@@ -1,20 +1,26 @@
 # 客户端ID
-cid: aaaassssdddd
+cid: ww的测试客户端
 
 # 服务端配置
 serverConf:
-  encryption: 1
   host: 127.0.0.1
   port: 9999
   sid: xdkjadfqwwefasdfasdfel123
 
-# 转发配置
+# 转发配置 支持多个
+# forwardHost 相对于服务端的目标地址
+# listenHost 本地监听地址
 forwardOverServer:
 - forwardHost: 127.0.0.1
-  forwardPort: 8800
+  forwardPort: 1080
   listenHost: 127.0.0.1
-  listenPort: 8899
+  listenPort: 21080
 
 
 # 控制端口，默认56781
 ctrlPort: 56781
+
+# 其他参数
+#arguments:
+#  enableNettyLog: true
+#  nettyLogLevel: INFO
