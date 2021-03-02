@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
+import com.wwh.rpm.client.connection.ConnectionProvider;
 
 import io.netty.channel.EventLoopGroup;
 
@@ -70,6 +71,10 @@ public class SubserverManager {
 
     public String getToken() {
         return clientManager.getToken();
+    }
+
+    public ConnectionProvider getConnectionProvider() {
+        return clientManager.getConnectionProvider();
     }
 
 }

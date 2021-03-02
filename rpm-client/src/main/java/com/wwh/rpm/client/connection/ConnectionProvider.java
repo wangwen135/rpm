@@ -81,7 +81,7 @@ public class ConnectionProvider {
         b.option(ChannelOption.TCP_NODELAY, true);
         // 不自动读取数据
         b.option(ChannelOption.AUTO_READ, false);
-        // 打印日志而已
+        // 打印日志
         b.handler(new ToTargetHandlerInitializer(clientManager));
         ChannelFuture f = b.connect(host, port);
         f.addListener(new ChannelFutureListener() {

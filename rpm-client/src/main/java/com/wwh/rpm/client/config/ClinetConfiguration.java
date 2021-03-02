@@ -122,19 +122,19 @@ public class ClinetConfiguration {
             ForwardOverServer f = forwardList.get(i - 1);
 
             if (StringUtils.isBlank(f.getListenHost())) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:listenHost】不能空");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:listenHost】不能空");
             }
 
             if (f.getListenPort() < 1 || f.getListenPort() > 65535) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:listenPort】错误");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:listenPort】错误");
             }
 
             if (StringUtils.isBlank(f.getForwardHost())) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:forwardHost】不能空");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:forwardHost】不能空");
             }
 
             if (f.getForwardPort() < 1 || f.getForwardPort() > 65535) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:forwardPort】错误");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:forwardPort】错误");
             }
         }
     }

@@ -89,6 +89,10 @@ public class ClientManager implements Closeer {
         return config;
     }
 
+    public BaseClient getBaseClient() {
+        return baseClient;
+    }
+
     public ConnectionProvider getConnectionProvider() {
         return connectionProvider;
     }

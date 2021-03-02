@@ -1,13 +1,32 @@
+# 服务端ID
 sid: xdkjadfqwwefasdfasdfel123
 
+# 主服务监听地址
 host: 0.0.0.0
+# 主服务监听端口
 port: 9999
 
+# 加密方式
+# NONE:不加密；SIMPLE:简单加密
+encryptType: SIMPLE
 
-encryption: 1
+# 是否启用压缩
+enableCompression: true
+# 压缩级别 0-9
+compressionLevel: 8
 
-forwardOverClient: [
+# 控制端口，默认56791
+ctrlPort: 56791
 
+# 经由客户端转发的列表
+forwardOverClient:
+- listenHost: 127.0.0.1
+  listenPort: 18080
+  clientId: 本地测试客户端A1
+  forwardHost: 127.0.0.1
+  forwardPort: 8080
 
-  ]
-
+# 其他参数
+arguments:
+  enableNettyLog: false
+  nettyLogLevel: INFO

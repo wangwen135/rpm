@@ -43,16 +43,14 @@ public class ToServerHandlerInitializer extends ChannelInitializer<SocketChannel
         pipeline.addLast(Constants.ENCODE_HANDLER_NAME, new PacketEncoder());
         pipeline.addLast(Constants.DECODE_HANDLER_NAME, new PacketDecoder());
 
-        String token = clientManager.getToken();
-
         if (packet != null) {
             // 客户端注册
-            pipeline.addLast("regist", new RegistClientHandler(token, fetchChannelWarp));
+            pipeline.addLast("regist", new RegistClientHandler(clientManager.getBaseClient(), fetchChannelWarp));
             // 发送指令等待结果
             pipeline.addLast("sendCommandWaitResult", new SendCommandWaitResultHandler(packet, fetchChannelWarp));
         } else {
             // 客户端注册 如果不发指令，则需要通知出来
-            pipeline.addLast("regist", new RegistClientHandler(token, fetchChannelWarp, true));
+            pipeline.addLast("regist", new RegistClientHandler(clientManager.getBaseClient(), fetchChannelWarp, true));
         }
     }
 

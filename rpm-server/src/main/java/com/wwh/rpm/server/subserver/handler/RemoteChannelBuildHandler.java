@@ -51,7 +51,11 @@ public class RemoteChannelBuildHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("构建客户端通道时异常", cause);
+        if (logger.isDebugEnabled() || logger.isInfoEnabled()) {
+            logger.error("构建客户端通道时异常", cause);
+        } else {
+            logger.error("构建客户端通道时异常 {}", cause.getMessage());
+        }
         ctx.close();
         if (outboundChannel != null) {
             outboundChannel.close();
