@@ -40,7 +40,7 @@ public class Constants {
     /**
      * 获取客户端转发通道超时时间
      */
-    public static final int ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT = 6000;
+    public static final int ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT = 10000;
 
     /**
      * channel 属性键值 用于存储 cid
@@ -50,6 +50,11 @@ public class Constants {
      * channel 属性键值 用于存储 token
      */
     public static final AttributeKey<String> ATTR_KEY_TOKEN = AttributeKey.valueOf("token");
+
+    /**
+     * 日志打印处理名称
+     */
+    public static final String LOGGER_HANDLER_NAME = "logger";
 
     /**
      * 编码器名称
@@ -64,6 +69,26 @@ public class Constants {
      * 指令处理器名称
      */
     public static final String COMMAND_HANDLER_NAME = "command";
+
+    /**
+     * 默认启用压缩
+     */
+    public static final boolean DEFAULT_ENABLE_COMPRESSION = true;
+
+    /**
+     * 默认压缩级别
+     */
+    public static final int DEFAULT_COMPRESSION_LEVEL = 6;
+
+    /**
+     * 最小压缩级别
+     */
+    public static final int COMPRESSION_LEVEL_MIN = 0;
+
+    /**
+     * 最大压缩级别
+     */
+    public static final int COMPRESSION_LEVEL_MAX = 9;
 
     // -----------------------------------
 

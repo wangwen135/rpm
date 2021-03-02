@@ -7,13 +7,13 @@ host: 0.0.0.0
 port: 9999
 
 # 加密方式
-# 1 简单加密
-encryption: 1
+# NONE:不加密；SIMPLE:简单加密
+encryptType: SIMPLE
 
 # 是否启用压缩
-
-# 压缩级别
-
+enableCompression: true
+# 压缩级别 0-9
+compressionLevel: 6
 
 # 控制端口，默认56791
 ctrlPort: 56791
@@ -21,12 +21,12 @@ ctrlPort: 56791
 # 经由客户端转发的列表
 forwardOverClient:
 - listenHost: 127.0.0.1
-  listenPort: 8800
-  clientId: aaaabbbbcc
+  listenPort: 18080
+  clientId: 本地测试客户端A1
   forwardHost: 127.0.0.1
   forwardPort: 8080
 
 # 其他参数
 arguments:
-  enableNettyLog: true
+  enableNettyLog: false
   nettyLogLevel: INFO

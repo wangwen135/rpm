@@ -61,7 +61,7 @@ public class ForwardOverClient {
         sbuf.append(" *  本地监听  listenHost:listenPort = ").append(listenHost).append(":").append(listenPort)
                 .append("\n");
         sbuf.append(" -> 转发的客户端ID  clientId = ").append(clientId).append("\n");
-        sbuf.append(" -> 经由客户端转发至  forwardHost:forwardPort = ").append(forwardHost).append(forwardPort).append("\n");
+        sbuf.append(" -> 经由客户端转发至  forwardHost:forwardPort = ").append(forwardHost).append(":").append(forwardPort).append("\n");
 
         return sbuf.toString();
     }

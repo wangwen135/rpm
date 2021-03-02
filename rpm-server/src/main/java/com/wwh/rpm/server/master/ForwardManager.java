@@ -42,6 +42,16 @@ public class ForwardManager {
     }
 
     /**
+     * 判断ID是否还存在，超时之后会被移除
+     * 
+     * @param id
+     * @return
+     */
+    public boolean idExist(long id) {
+        return forwardChannelMap.containsKey(id);
+    }
+
+    /**
      * 收到一个客户端的转发通道
      * 
      * @param id
@@ -134,7 +144,11 @@ public class ForwardManager {
 
         public Channel get() {
             if (cause != null) {
-                throw new RPMException(cause);
+                if (cause instanceof RPMException) {
+                    throw (RPMException) cause;
+                } else {
+                    throw new RPMException(cause);
+                }
             }
             return channel;
         }

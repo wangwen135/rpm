@@ -24,10 +24,12 @@
 		</encoder>
 	</appender>
 
-
-	<root level="INFO">
+	<root level="ERROR">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>
+	
+	<logger name="com.wwh.rpm" level="WARN"/>
+	<logger name="rpm.msg" level="INFO" />
 
 </configuration>

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
+import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.client.subserver.handler.SubserverHandlerInitializer;
 import com.wwh.rpm.common.utils.RpmMsgPrinter;
 
@@ -92,5 +93,9 @@ public class Subserver {
 
     public String getToken() {
         return subserverManager.getToken();
+    }
+
+    public ConnectionProvider getConnectionProvider() {
+        return subserverManager.getConnectionProvider();
     }
 }

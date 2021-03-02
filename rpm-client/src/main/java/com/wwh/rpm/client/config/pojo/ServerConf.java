@@ -7,8 +7,6 @@ public class ServerConf {
     private String host;
     private int port;
 
-    private int encryption = 1;
-
     public String getSid() {
         return sid;
     }
@@ -33,17 +31,9 @@ public class ServerConf {
         this.port = port;
     }
 
-    public int getEncryption() {
-        return encryption;
-    }
-
-    public void setEncryption(int encryption) {
-        this.encryption = encryption;
-    }
-
     @Override
     public String toString() {
-        return "ServerConf [sid=" + sid + ", host=" + host + ", port=" + port + ", encryption=" + encryption + "]";
+        return "ServerConf [sid=" + sid + ", host=" + host + ", port=" + port + "]";
     }
 
     public String toPrettyString() {
@@ -51,7 +41,6 @@ public class ServerConf {
         sbuf.append(" 服务器地址 host = ").append(host).append("\n");
         sbuf.append(" 服务器端口 port = ").append(port).append("\n");
         sbuf.append(" 服务器sid  sid = ").append(sid).append("\n");
-        sbuf.append(" 加密方式   encryption = ").append(encryption).append("\n");
         return sbuf.toString();
     }
 }

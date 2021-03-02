@@ -1,5 +1,6 @@
 package com.wwh.rpm.protocol.packet.auth;
 
+import com.wwh.rpm.common.config.pojo.CommConfig;
 import com.wwh.rpm.protocol.ProtocolConstants;
 import com.wwh.rpm.protocol.packet.AbstractPacket;
 
@@ -15,6 +16,11 @@ public class TokenPacket extends AbstractPacket {
 
     private String token;
 
+    /**
+     * 通讯配置
+     */
+    private CommConfig commConfig;
+
     @Override
     public byte getType() {
         return ProtocolConstants.TYPE_TOKEN;
@@ -26,6 +32,14 @@ public class TokenPacket extends AbstractPacket {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public CommConfig getCommConfig() {
+        return commConfig;
+    }
+
+    public void setCommConfig(CommConfig commConfig) {
+        this.commConfig = commConfig;
     }
 
 }

@@ -11,16 +11,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.Constants;
+import com.wwh.rpm.common.enums.EncryptTypeEnum;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.protocol.packet.auth.AuthPacket;
 import com.wwh.rpm.protocol.packet.auth.RegistPacket;
 import com.wwh.rpm.protocol.packet.auth.TokenPacket;
 import com.wwh.rpm.protocol.packet.general.SuccessPacket;
 import com.wwh.rpm.protocol.security.RandomNumberCodec;
+import com.wwh.rpm.protocol.security.SimpleEncryptionDecoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionEncoder;
 import com.wwh.rpm.server.master.MasterServer;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.compression.JdkZlibDecoder;
+import io.netty.handler.codec.compression.JdkZlibEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.Attribute;
 
@@ -101,6 +107,8 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             logger.debug("【主服务】认证通过，返回token：{}", token);
 
             TokenPacket tokenPacket = new TokenPacket();
+            // 将通讯配置返回给客户端
+            tokenPacket.setCommConfig(masterServer.getConfig().getCommConfig());
             tokenPacket.setToken(token);
             ctx.writeAndFlush(tokenPacket);
 
@@ -115,6 +123,8 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "idle",
                     new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
             ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "heartbeat", new HeartbeatHandler());
+
+            configCommunication(ctx);
         } else {
             throw new RPMException("随机数不正确，客户端认证失败！");
         }
@@ -131,8 +141,30 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
         setAttribute(ctx);
         // 移除handler
-        ctx.pipeline().remove(this);
+        ChannelPipeline pipeline = ctx.pipeline();
+        pipeline.remove(this);
 
+        configCommunication(ctx);
+    }
+
+    private void configCommunication(ChannelHandlerContext ctx) {
+        ChannelPipeline pipeline = ctx.pipeline();
+        boolean compression = masterServer.getConfig().getEnableCompression();
+        // 是否需要进行压缩
+        if (compression) {
+            int level = masterServer.getConfig().getCompressionLevel();
+            // 压缩
+            pipeline.addFirst(new JdkZlibEncoder(level));
+            pipeline.addFirst(new JdkZlibDecoder());
+        }
+
+        EncryptTypeEnum encryptType = masterServer.getConfig().getEncryptType();
+        if (EncryptTypeEnum.SIMPLE == encryptType) {
+            String sid = masterServer.getConfig().getSid();
+            // 加密
+            pipeline.addFirst(new SimpleEncryptionEncoder(sid));
+            pipeline.addFirst(new SimpleEncryptionDecoder(sid));
+        }
     }
 
     @Override
@@ -158,7 +190,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        logger.info("【主服务】连接:{} 断开了，取消注册，cid：{}", ctx.channel(), cid);
+        logger.info("【主服务】连接:{} 断开了", ctx.channel());
         if (registered) {
             masterServer.unregistClient(cid);
         }

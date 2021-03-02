@@ -1,5 +1,7 @@
 package com.wwh.rpm.server.master.handler;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +55,16 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
     private void forwardResultHandler(ChannelHandlerContext ctx, ForwardResultPacket forwardResult) {
         long fId = forwardResult.getId();
         if (!forwardResult.getResult()) {
-            RPMException cause = new RPMException("客户端无法建立连接");
-            masterServer.getForwardManager().receiveClientChannelError(fId, cause);
+            // 只有主服务会收到 转发指令包执行失败结果
+            try {
+                // 客户端太久才反馈，子服务等待已超时，移除了等待对象
+                if (masterServer.getForwardManager().idExist(fId)) {
+                    RPMException cause = new RPMException("主服务：客户端无法建立连接");
+                    masterServer.getForwardManager().receiveClientChannelError(fId, cause);
+                }
+            } catch (Exception e) {
+                logger.error("主服务通知转发管理器异常", e);
+            }
             return;
         }
         // 转发指令成功
@@ -118,7 +128,12 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("指令处理异常", cause);
+        if (cause instanceof IOException) {
+            logger.error("指令处理异常：{} channel：{}", cause.getMessage(), ctx.channel());
+            logger.debug("异常信息", cause);
+        } else {
+            logger.error("指令处理异常", cause);
+        }
         ctx.close();
     }
 

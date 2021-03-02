@@ -12,6 +12,7 @@ import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConf;
 import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.common.Constants;
+import com.wwh.rpm.common.config.pojo.CommConfig;
 import com.wwh.rpm.common.exception.RPMException;
 
 import io.netty.bootstrap.Bootstrap;
@@ -46,6 +47,11 @@ public class BaseClient {
      * 服务端返回的token
      */
     private String token;
+
+    /**
+     * 通讯配置
+     */
+    private CommConfig commConfig;
 
     private Object lock = new Object();
 
@@ -139,4 +145,13 @@ public class BaseClient {
     public ConnectionProvider getConnectionProvider() {
         return clientManager.getConnectionProvider();
     }
+
+    public CommConfig getCommConfig() {
+        return commConfig;
+    }
+
+    public void setCommConfig(CommConfig commConfig) {
+        this.commConfig = commConfig;
+    }
+
 }

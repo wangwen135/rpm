@@ -42,9 +42,6 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    // TODO 这个有点耗时，需要弄成异步的
-    // 主客户端响应指令之后只是一个通知而已，这个完全可以丢到线程池中执行
-
     private void forwardCommandHandler(ChannelHandlerContext ctx, ForwardCommandPacket forwardCommand) {
         logger.debug("处理转发指令:{}", forwardCommand);
 
@@ -61,7 +58,12 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         try {
             toTargetChannel = toTarget.getChannelOnce();
         } catch (Exception e) {
-            logger.error("无法连接到目标服务器：{}", forwardCommand, e);
+            if (logger.isDebugEnabled() || logger.isInfoEnabled()) {
+                logger.error("无法连接到目标：{}", forwardCommand, e);
+            } else {
+                logger.error("无法连接到目标：{} {}", forwardCommand, e.getMessage());
+            }
+
             // 通知服务端
             ctx.writeAndFlush(forwardResultPacket);
             // 关闭新开的连接
