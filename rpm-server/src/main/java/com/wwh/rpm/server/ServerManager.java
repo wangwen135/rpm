@@ -20,68 +20,68 @@ import io.netty.channel.nio.NioEventLoopGroup;
  */
 public class ServerManager implements Closeer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServerManager.class);
+	private static final Logger logger = LoggerFactory.getLogger(ServerManager.class);
 
-    private ServerConfig config;
-    private MasterServer masterServer;
-    private SubserverManager subserverManager;
+	private ServerConfig config;
+	private MasterServer masterServer;
+	private SubserverManager subserverManager;
 
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
+	private EventLoopGroup workerGroup;
 
-    private AtomicBoolean isStartup = new AtomicBoolean(false);
+	private AtomicBoolean isStartup = new AtomicBoolean(false);
 
-    public ServerManager(ServerConfig config) {
-        this.config = config;
-        masterServer = new MasterServer(this);
-        subserverManager = new SubserverManager(this);
+	public ServerManager(ServerConfig config) {
+		this.config = config;
+		masterServer = new MasterServer(this);
+		subserverManager = new SubserverManager(this);
 
-        // 创建线程池
-        int bossPoolSize = config.getForwardOverClient() == null ? 1 : config.getForwardOverClient().size();
-        bossGroup = new NioEventLoopGroup(bossPoolSize);
-        workerGroup = new NioEventLoopGroup();
-    }
+		// 创建线程池
+		workerGroup = new NioEventLoopGroup();
+	}
 
-    public void startServer() throws Exception {
+	public void startServer() throws Exception {
 
-        if (!isStartup.compareAndSet(false, true)) {
-            logger.error("服务端已是启动状态 ！");
-            return;
-        }
+		if (!isStartup.compareAndSet(false, true)) {
+			logger.error("服务端已是启动状态 ！");
+			return;
+		}
 
-        logger.info("启动主服务...");
-        masterServer.start(bossGroup, workerGroup);
+		logger.info("启动主服务...");
+		masterServer.start();
 
-        logger.info("启动子服务...");
-        subserverManager.startAll(bossGroup, workerGroup);
-    }
+		logger.info("启动子服务...");
+		subserverManager.startAll();
+	}
 
-    public void shutdownServer() {
-        logger.info("关闭主服务...");
-        masterServer.shutdown();
+	public void shutdownServer() {
+		logger.info("关闭主服务...");
+		masterServer.shutdown();
 
-        logger.info("关闭子服务...");
-        subserverManager.stopAll();
+		logger.info("关闭子服务...");
+		subserverManager.stopAll();
 
-        logger.info("关闭线程池...");
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
-    }
+		logger.info("关闭线程池...");
+		workerGroup.shutdownGracefully();
+	}
 
-    public MasterServer getMasterServer() {
-        return masterServer;
-    }
+	public EventLoopGroup getWorkerGroup() {
+		return workerGroup;
+	}
 
-    public SubserverManager getSubserverManager() {
-        return subserverManager;
-    }
+	public MasterServer getMasterServer() {
+		return masterServer;
+	}
 
-    public ServerConfig getConfig() {
-        return config;
-    }
+	public SubserverManager getSubserverManager() {
+		return subserverManager;
+	}
 
-    @Override
-    public void close() {
-        ServerStarter.shutdownNotify();
-    }
+	public ServerConfig getConfig() {
+		return config;
+	}
+
+	@Override
+	public void close() {
+		ServerStarter.shutdownNotify();
+	}
 }

@@ -13,6 +13,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
@@ -23,79 +24,87 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  */
 public class Subserver {
 
-    private static final Logger logger = LoggerFactory.getLogger(Subserver.class);
+	private static final Logger logger = LoggerFactory.getLogger(Subserver.class);
 
-    private SubserverManager subserverManager;
-    private ForwardOverServer forwardConfig;
+	private SubserverManager subserverManager;
+	private ForwardOverServer forwardConfig;
+	private EventLoopGroup bossGroup;
+	private EventLoopGroup workerGroup;
+	private Channel channel;
 
-    private Channel channel;
+	public Subserver(SubserverManager subserverManager, ForwardOverServer forwardConfig) {
+		this.subserverManager = subserverManager;
+		this.forwardConfig = forwardConfig;
+		this.bossGroup = new NioEventLoopGroup(1);
+		this.workerGroup = new NioEventLoopGroup();
+	}
 
-    public Subserver(SubserverManager subserverManager, ForwardOverServer forwardConfig) {
-        this.subserverManager = subserverManager;
-        this.forwardConfig = forwardConfig;
-    }
+	/**
+	 * 启动
+	 * 
+	 * @throws Exception
+	 */
+	public void start() throws Exception {
+		ServerBootstrap b = new ServerBootstrap();
+		b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
-    /**
-     * 启动
-     * 
-     * @param bossGroup
-     * @param workerGroup
-     * @throws Exception
-     */
-    public void start(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception {
-        ServerBootstrap b = new ServerBootstrap();
-        b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+		// 不会自动读取数据
+		b.childOption(ChannelOption.AUTO_READ, false);
+		b.childOption(ChannelOption.TCP_NODELAY, true);
 
-        // 不会自动读取数据
-        b.childOption(ChannelOption.AUTO_READ, false);
-        b.childOption(ChannelOption.TCP_NODELAY, true);
+		b.childHandler(new SubserverHandlerInitializer(this));
 
-        b.childHandler(new SubserverHandlerInitializer(this));
+		channel = b.bind(forwardConfig.getListenHost(), forwardConfig.getListenPort()).sync().channel();
 
-        channel = b.bind(forwardConfig.getListenHost(), forwardConfig.getListenPort()).sync().channel();
+		RpmMsgPrinter.printMsg("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
 
-        RpmMsgPrinter.printMsg("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
+	}
 
-    }
+	/**
+	 * 关闭
+	 */
+	public void shutdown() {
+		try {
+			logger.debug("子服务关闭线程池...");
+			bossGroup.shutdownGracefully();
+			workerGroup.shutdownGracefully();
 
-    // 停止
-    public void shutdown() {
-        try {
-            if (channel != null && channel.isActive()) {
-                channel.close().sync();
-            }
-        } catch (InterruptedException e) {
-            logger.error("关闭子服务异常", e);
-        }
-    }
+			if (channel != null && channel.isActive()) {
+				channel.close().sync();
+			}
 
-    @Override
-    public String toString() {
-        StringBuffer sbuf = new StringBuffer();
-        sbuf.append("【子服务】本地监听：\n");
-        sbuf.append(forwardConfig.getListenHost());
-        sbuf.append(":");
-        sbuf.append(forwardConfig.getListenPort());
-        sbuf.append("\n经由服务端转发至：\n");
-        sbuf.append(forwardConfig.getForwardHost());
-        sbuf.append(":");
-        sbuf.append(forwardConfig.getForwardHost());
-        return sbuf.toString();
-    }
+		} catch (InterruptedException e) {
+			logger.error("关闭子服务异常", e);
+		}
+	}
 
-    public ForwardOverServer getForwardConfig() {
-        return forwardConfig;
-    }
+	@Override
+	public String toString() {
+		StringBuffer sbuf = new StringBuffer();
+		sbuf.append("【子服务】本地监听：\n");
+		sbuf.append(forwardConfig.getListenHost());
+		sbuf.append(":");
+		sbuf.append(forwardConfig.getListenPort());
+		sbuf.append("\n经由服务端转发至：\n");
+		sbuf.append(forwardConfig.getForwardHost());
+		sbuf.append(":");
+		sbuf.append(forwardConfig.getForwardHost());
+		return sbuf.toString();
+	}
 
-    public ClientConfig getConfig() {
-        return subserverManager.getConfig();
-    }
+	public ForwardOverServer getForwardConfig() {
+		return forwardConfig;
+	}
 
-    public String getToken() {
-        return subserverManager.getToken();
-    }
+	public ClientConfig getConfig() {
+		return subserverManager.getConfig();
+	}
 
-    public ConnectionProvider getConnectionProvider() {
-        return subserverManager.getConnectionProvider();
-    }
+	public String getToken() {
+		return subserverManager.getToken();
+	}
+
+	public ConnectionProvider getConnectionProvider() {
+		return subserverManager.getConnectionProvider();
+	}
 }

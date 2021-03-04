@@ -21,137 +21,150 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**
  * <pre>
- * 客户端
- * 这个可以走ssl，通讯量比较小，主要用于维持长连接。。
- * 
- * 响应服务端的指令
+ * 主客户端
+ * 1. 注册
+ * 2. 响应服务端的指令
  * </pre>
  * 
  * @author wwh
  */
 public class BaseClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(BaseClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(BaseClient.class);
 
-    private ClientManager clientManager;
+	private ClientManager clientManager;
 
-    private AtomicBoolean isRunning = new AtomicBoolean(false);
+	private AtomicBoolean isRunning = new AtomicBoolean(false);
 
-    private Channel channel;
+	private Channel channel;
 
-    /**
-     * 服务端返回的token
-     */
-    private String token;
+	/**
+	 * 服务端返回的token
+	 */
+	private String token;
 
-    /**
-     * 通讯配置
-     */
-    private CommConfig commConfig;
+	/**
+	 * 通讯配置
+	 */
+	private CommConfig commConfig;
 
-    private Object lock = new Object();
+	private Object lock = new Object();
 
-    public BaseClient(ClientManager clientManager) {
-        this.clientManager = clientManager;
-    }
+	private EventLoopGroup workerGroup;
 
-    public boolean isRunning() {
-        return isRunning.get();
-    }
+	public BaseClient(ClientManager clientManager) {
+		this.clientManager = clientManager;
+		workerGroup = new NioEventLoopGroup();
+	}
 
-    public void shutdown() {
-        synchronized (lock) {
-            lock.notifyAll();
-        }
+	public boolean isRunning() {
+		return isRunning.get();
+	}
 
-        if (!isRunning()) {
-            logger.warn("主服务没有启动");
-            return;
-        }
-        if (channel != null) {
-            channel.close();
-        }
-    }
+	/**
+	 * 关闭
+	 */
+	public void shutdown() {
+		synchronized (lock) {
+			lock.notifyAll();
+		}
+		logger.debug("主服务关闭线程池");
+		workerGroup.shutdownGracefully();
 
-    public void start(EventLoopGroup workerGroup) throws Exception {
-        if (!isRunning.compareAndSet(false, true)) {
-            logger.error("客户端正在运行！");
-            return;
-        }
-        ServerConf serverConf = clientManager.getConfig().getServerConf();
+		if (!isRunning()) {
+			logger.warn("主服务没有启动");
+			return;
+		}
+		if (channel != null) {
+			channel.close();
+		}
+	}
 
-        Bootstrap b = new Bootstrap();
-        b.group(workerGroup).channel(NioSocketChannel.class);
-        b.option(ChannelOption.TCP_NODELAY, true);
-        b.handler(new BaseHandlerInitializer(this));
+	/**
+	 * 启动
+	 * 
+	 * @throws Exception
+	 */
+	public void start() throws Exception {
+		if (!isRunning.compareAndSet(false, true)) {
+			logger.error("客户端正在运行！");
+			return;
+		}
+		ServerConf serverConf = clientManager.getConfig().getServerConf();
 
-        ChannelFuture f = b.connect(serverConf.getHost(), serverConf.getPort()).sync();
-        channel = f.channel();
-        channel.closeFuture().addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                logger.warn("客户端【主连接】被关闭！");
-                synchronized (lock) {
-                    lock.notifyAll();
-                }
-                clientManager.close();
-            }
-        });
-    }
+		Bootstrap b = new Bootstrap();
+		b.group(workerGroup).channel(NioSocketChannel.class);
+		b.option(ChannelOption.TCP_NODELAY, true);
+		b.handler(new BaseHandlerInitializer(this));
 
-    public String getToken() {
-        return token;
-    }
+		ChannelFuture f = b.connect(serverConf.getHost(), serverConf.getPort()).sync();
+		channel = f.channel();
+		channel.closeFuture().addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				logger.warn("客户端【主连接】被关闭！");
+				synchronized (lock) {
+					lock.notifyAll();
+				}
+				clientManager.close();
+			}
+		});
+	}
 
-    /**
-     * 等待获取到token
-     * 
-     * @return
-     */
-    public String waitToken() {
-        if (token != null) {
-            return token;
-        }
-        synchronized (lock) {
-            try {
-                lock.wait(Constants.CLIENT_WAIT_TOKEN_TIMEOUT);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        if (StringUtils.isBlank(token)) {
-            throw new RPMException("token 为空！");
-        } else {
-            return token;
-        }
-    }
+	public String getToken() {
+		return token;
+	}
 
-    public void setToken(String token) {
-        this.token = token;
-        // 通知
-        synchronized (lock) {
-            lock.notifyAll();
-        }
-    }
+	/**
+	 * 等待获取到token
+	 * 
+	 * @return
+	 */
+	public String waitToken() {
+		if (token != null) {
+			return token;
+		}
+		synchronized (lock) {
+			try {
+				lock.wait(Constants.CLIENT_WAIT_TOKEN_TIMEOUT);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		if (StringUtils.isBlank(token)) {
+			throw new RPMException("token 为空！");
+		} else {
+			return token;
+		}
+	}
 
-    public ClientConfig getConfig() {
-        return clientManager.getConfig();
-    }
+	public void setToken(String token) {
+		this.token = token;
+		// 通知
+		synchronized (lock) {
+			lock.notifyAll();
+		}
+	}
 
-    public ConnectionProvider getConnectionProvider() {
-        return clientManager.getConnectionProvider();
-    }
+	public ClientConfig getConfig() {
+		return clientManager.getConfig();
+	}
 
-    public CommConfig getCommConfig() {
-        return commConfig;
-    }
+	public ConnectionProvider getConnectionProvider() {
+		return clientManager.getConnectionProvider();
+	}
 
-    public void setCommConfig(CommConfig commConfig) {
-        this.commConfig = commConfig;
-    }
+	public CommConfig getCommConfig() {
+		return commConfig;
+	}
+
+	public void setCommConfig(CommConfig commConfig) {
+		this.commConfig = commConfig;
+	}
 
 }
