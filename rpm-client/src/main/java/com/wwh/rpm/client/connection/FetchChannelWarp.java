@@ -15,7 +15,7 @@ import io.netty.channel.Channel;
  */
 public class FetchChannelWarp {
 
-    private static final int DEFAULT_WAIT_TIME_SECOND = 3;
+    private static final int DEFAULT_WAIT_TIME_SECOND = 6;
 
     private Object lock = new Object();
 
@@ -83,6 +83,9 @@ public class FetchChannelWarp {
             return channel;
         }
         if (cause != null) {
+            if (cause instanceof RPMException) {
+                throw (RPMException) cause;
+            }
             throw new Exception(cause);
         }
         return null;

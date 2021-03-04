@@ -1,9 +1,11 @@
 # 客户端ID
-cid: 本地测试客户端A1
+cid: 客户端对应的cid
 
 # 服务端配置
 serverConf:
-  host: 127.0.0.1
+#  host: 127.0.0.1
+  host: 139.9.78.59
+#  host: 207.148.90.239
   port: 9999
   sid: xdkjadfqwwefasdfasdfel123
 
