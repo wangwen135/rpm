@@ -15,6 +15,8 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
  * @author wangwh
@@ -23,6 +25,8 @@ import io.netty.handler.timeout.IdleStateHandler;
 public class BaseHandlerInitializer extends ChannelInitializer<SocketChannel> {
 
     private BaseClient baseClient;
+ // 事件处理线程
+    EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(16);
 
     public BaseHandlerInitializer(BaseClient baseClient) {
         this.baseClient = baseClient;
@@ -48,7 +52,7 @@ public class BaseHandlerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new ClientHeartbeatHandler());
 
         // 服务端指令处理
-        pipeline.addLast(new CommandHandler(baseClient));
+        pipeline.addLast(eventExecutorGroup,new CommandHandler(baseClient));
 
     }
 

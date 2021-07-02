@@ -69,7 +69,7 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
 			return;
 		}
 		// 转发指令成功
-		ctx.writeAndFlush(new SuccessPacket());
+		ctx.write(new SuccessPacket());
 
 		// 移除编码器和指令处理器
 		ChannelPipeline pipeline = ctx.pipeline();
@@ -79,6 +79,8 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
 
 		// 通知
 		masterServer.getForwardManager().receiveClientChannel(fId, ctx.channel());
+		
+		ctx.flush();
 	}
 
 	private void forwardCommandHandler(ChannelHandlerContext ctx, ForwardCommandPacket forwardCommand) {

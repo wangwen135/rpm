@@ -43,6 +43,11 @@ public class Constants {
     public static final int ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT = 10000;
 
     /**
+     * 异步方式（回调函数）获取客户端通道超时时间
+     */
+    public static final int ASYNC_ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT = 20000;
+
+    /**
      * channel 属性键值 用于存储 cid
      */
     public static final AttributeKey<String> ATTR_KEY_CID = AttributeKey.valueOf("cid");
@@ -89,6 +94,8 @@ public class Constants {
      * 最大压缩级别
      */
     public static final int COMPRESSION_LEVEL_MAX = 9;
+
+    public static final int min_workgroup_size = 8;
 
     // -----------------------------------
 

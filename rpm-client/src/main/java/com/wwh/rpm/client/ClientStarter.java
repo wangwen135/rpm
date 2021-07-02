@@ -23,14 +23,25 @@ public class ClientStarter {
 
     private static Object lock = new Object();
 
-    public static void main(String[] args) {
-        RpmMsgPrinter.printMsg("启动 RPM 客户端...");
-        try {
-            launch(args);
-        } catch (Exception e) {
-            logger.error("程序异常！", e);
-        }
-        RpmMsgPrinter.printMsg("RPM 停止工作！");
+    public static void main(String[] args) throws InterruptedException {
+        
+        //程序异常 和 kill -15 是两种情况，需要编码处理一下 
+        do {
+            RpmMsgPrinter.printMsg("启动 RPM 客户端...");
+            try {
+                launch(args);
+            } catch (Exception e) {
+                logger.error("程序异常！", e);
+            }
+//            if (!isClosing) {
+            if (true) {
+                logger.warn("5秒钟之后重新启动...");
+                Thread.sleep(5000);
+            }
+        } while (true);
+//      } while (!isClosing);
+
+      //RpmMsgPrinter.printMsg("RPM 停止工作！");
     }
 
     public static void launch(String[] args) {

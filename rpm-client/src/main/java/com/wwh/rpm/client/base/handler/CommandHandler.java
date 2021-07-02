@@ -45,6 +45,8 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
     private void forwardCommandHandler(ChannelHandlerContext ctx, ForwardCommandPacket forwardCommand) {
         logger.debug("处理转发指令:{}", forwardCommand);
 
+//TODOWWH 考虑阻塞问题，可能要做成异步的
+
         ForwardResultPacket forwardResultPacket = new ForwardResultPacket(forwardCommand.getId());
         ConnectionProvider connectionProvider = baseClient.getConnectionProvider();
 
@@ -56,7 +58,9 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
 
         Channel toTargetChannel;
         try {
+            System.err.println("线程在等待1  " + Thread.currentThread());
             toTargetChannel = toTarget.getChannelOnce();
+            System.err.println("线程等待结束1  " + Thread.currentThread());
         } catch (Exception e) {
             if (logger.isDebugEnabled() || logger.isInfoEnabled()) {
                 logger.error("无法连接到目标：{}", forwardCommand, e);
@@ -73,7 +77,11 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         }
         Channel toServerChannel;
         try {
+            System.err.println("线程在等待2  " + Thread.currentThread());
+
             toServerChannel = toServer.getChannelOnce();
+
+            System.err.println("线程等待结束2  " + Thread.currentThread());
         } catch (Exception e) {
             logger.error("建立到服务器的链路异常", e);
 
@@ -94,7 +102,11 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         toServerChannel.pipeline().addLast(scwrHandler);
         toServerChannel.pipeline().fireUserEventTriggered(new RegistSuccessEvent());
         try {
+            System.err.println("线程在等待3  " + Thread.currentThread());
+
             toServerChannel = toServer2.getChannelOnce();
+
+            System.err.println("线程等待结束3  " + Thread.currentThread());
         } catch (Exception e) {
             logger.error("响应转发指令异常", e);
             // 通知服务端
@@ -111,6 +123,12 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         toServerChannel.pipeline().addLast(new TransmissionHandler(toTargetChannel));
         toTargetChannel.read();
         toServerChannel.read();
+
+        
+        System.err.println("将两个通道关联起来...");
+        toTargetChannel.pipeline().read();
+        toTargetChannel.pipeline().read();
+        
     }
 
     @Override

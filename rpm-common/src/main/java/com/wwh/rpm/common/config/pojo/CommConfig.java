@@ -22,7 +22,7 @@ public class CommConfig {
     private Boolean enableCompression;
 
     /**
-     * 要是级别
+     * 压缩级别
      */
     private Integer compressionLevel;
 
@@ -48,6 +48,16 @@ public class CommConfig {
 
     public void setCompressionLevel(Integer compressionLevel) {
         this.compressionLevel = compressionLevel;
+    }
+
+    @Override
+    public String toString() {
+        return "CommConfig [encryptType=" + encryptType + ", enableCompression=" + enableCompression
+                + ", compressionLevel=" + compressionLevel + "]";
+    }
+
+    public String toPrettyString() {
+        return "加密方式=" + encryptType + ", 启用压缩=" + enableCompression + ", 压缩级别=" + compressionLevel;
     }
 
 }

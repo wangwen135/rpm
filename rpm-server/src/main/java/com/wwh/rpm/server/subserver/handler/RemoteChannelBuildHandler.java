@@ -28,29 +28,37 @@ public class RemoteChannelBuildHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
 
-        Channel inboundChannel = ctx.channel();
+        final Channel inboundChannel = ctx.channel();
 
         logger.debug("子服务收到新连接：{} 开始建立到客户端的链路", inboundChannel);
 
         // 请求一个客户端通道
-        // 阻塞方法
-        outboundChannel = subserver.acquireClientForwardChannel();
 
-        // 添加转发handler
-        ChannelPipeline pipeline = ctx.pipeline();
-        pipeline.addLast(new TransmissionHandler(outboundChannel));
-        pipeline.remove(this);
+        // ctx.channel().eventLoop().execute(command);
+        subserver.acquireClientForwardChannel(scp -> {
+            logger.debug("回调触发");
+            try {
+                outboundChannel = scp.get();
+                // 添加转发handler
+                ChannelPipeline pipeline = ctx.pipeline();
+                pipeline.addLast(new TransmissionHandler(outboundChannel));
+                pipeline.remove(this);
 
-        outboundChannel.pipeline().addLast(new TransmissionHandler(inboundChannel));
+                outboundChannel.pipeline().addLast(new TransmissionHandler(inboundChannel));
+                
+                System.out.println("！！！！！！！！！！！！开始读取数据了");
+                inboundChannel.read();
+                outboundChannel.read();
+            } catch (Exception e) {
+                exceptionCatch(ctx, e);
+            }
+        });
 
-        inboundChannel.read();
-        outboundChannel.read();
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    private void exceptionCatch(ChannelHandlerContext ctx, Throwable cause) {
         if (logger.isDebugEnabled() || logger.isInfoEnabled()) {
             logger.error("构建客户端通道时异常", cause);
         } else {
@@ -60,5 +68,10 @@ public class RemoteChannelBuildHandler extends ChannelInboundHandlerAdapter {
         if (outboundChannel != null) {
             outboundChannel.close();
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        exceptionCatch(ctx, cause);
     }
 }

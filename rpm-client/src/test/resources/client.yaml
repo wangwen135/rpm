@@ -16,7 +16,7 @@ forwardOverServer:
 - listenHost: 127.0.0.1
   listenPort: 21080
   forwardHost: 127.0.0.1
-  forwardPort: 1080
+  forwardPort: 10808
 
 
 # 控制端口，默认56781
@@ -24,5 +24,5 @@ ctrlPort: 56781
 
 # 其他参数
 arguments:
-  enableNettyLog: false
-  nettyLogLevel: INFO
+  enableNettyLog: true
+  nettyLogLevel: debug

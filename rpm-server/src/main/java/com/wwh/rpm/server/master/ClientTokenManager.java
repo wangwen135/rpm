@@ -1,7 +1,7 @@
 package com.wwh.rpm.server.master;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.wwh.rpm.common.exception.RPMException;
 
@@ -15,8 +15,8 @@ import io.netty.channel.Channel;
  */
 public class ClientTokenManager {
 
-    private Map<String, ClientToken> cidMap = new HashMap<>();
-    private Map<String, ClientToken> tokenMap = new HashMap<>();
+    private Map<String, ClientToken> cidMap = new ConcurrentHashMap<>();
+    private Map<String, ClientToken> tokenMap = new ConcurrentHashMap<>();
 
     public void regist(String cid, String token, Channel channel) {
         if (cid == null || token == null || channel == null) {

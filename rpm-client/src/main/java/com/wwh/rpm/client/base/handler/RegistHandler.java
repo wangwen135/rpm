@@ -77,6 +77,9 @@ public class RegistHandler extends ChannelInboundHandlerAdapter {
     private void configCommunication(ChannelHandlerContext ctx) {
         ChannelPipeline pipeline = ctx.pipeline();
         CommConfig commConfig = baseClient.getCommConfig();
+
+        logger.info("通信配置：{}", commConfig.toPrettyString());
+
         boolean compression = commConfig.getEnableCompression();
         // 是否需要进行压缩
         if (compression) {

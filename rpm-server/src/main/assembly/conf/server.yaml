@@ -11,7 +11,7 @@ port: 9999
 encryptType: SIMPLE
 
 # 是否启用压缩
-enableCompression: true
+enableCompression: false
 # 压缩级别 0-9
 compressionLevel: 6
 
@@ -22,8 +22,8 @@ ctrlPort: 56791
 # listenHost 本地监听地址
 # forwardHost 相对于指定客户端的目标服务器地址
 forwardOverClient:
-- listenHost: 127.0.0.1
-  listenPort: 18080
+- listenHost: 0.0.0.0
+  listenPort: 8080
   clientId: 客户端对应的cid
   forwardHost: 127.0.0.1
   forwardPort: 8080
@@ -31,5 +31,5 @@ forwardOverClient:
 
 # 其他参数（可选）
 arguments:
-  enableNettyLog: false
-  nettyLogLevel: INFO
+  enableNettyLog: true
+  nettyLogLevel: debug
