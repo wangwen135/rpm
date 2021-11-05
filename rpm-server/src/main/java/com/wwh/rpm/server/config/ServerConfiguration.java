@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.config.YamlConfigReader;
 import com.wwh.rpm.common.exception.ConfigException;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 
@@ -73,7 +73,7 @@ public class ServerConfiguration {
     }
 
     public static void printServerConfig(ServerConfig config) {
-        RpmMsgPrinter.printMsg(config.toPrettyString());
+        LogUtil.msgLog.info(config.toPrettyString());
     }
 
     public static void check(ServerConfig serverConfig) throws ConfigException {

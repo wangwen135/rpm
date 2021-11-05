@@ -1,6 +1,7 @@
 package com.wwh.rpm.server.master.handler;
 
-import static com.wwh.rpm.common.Constants.DEFAULT_IDLE_TIMEOUT;
+import static com.wwh.rpm.protocol.ProtocolConstants.*;
+import static com.wwh.rpm.common.Constants.*;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.enums.EncryptTypeEnum;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.protocol.packet.auth.AuthPacket;
@@ -32,7 +32,7 @@ import io.netty.util.Attribute;
 
 /**
  * 认证
- * 
+ *
  * @author wangwh
  * @date 2020-12-30
  */
@@ -83,7 +83,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
             throw new RPMException("客户端cid不能为空");
         }
 
-        random = RandomUtils.nextInt(1111111, 9999999);
+        random = RandomUtils.nextInt(AUTH_RANDOM_NUMBER_MIN, AUTH_RANDOM_NUMBER_MAX);
         String sid = masterServer.getConfig().getSid();
 
         logger.debug("【主服务】向客户端发送随机数：{}", random);
@@ -102,7 +102,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
         int rand = RandomNumberCodec.decrypt(authPacket, sid);
 
         // 比对随机数
-        if ((rand - 1) == random) {
+        if ((rand - AUTH_RANDOM_NUMBER_INCREMENT) == random) {
             token = UUID.randomUUID().toString();
             logger.debug("【主服务】认证通过，返回token：{}", token);
 
@@ -120,9 +120,9 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
             logger.debug("【主服务】添加心跳处理");
             // 心跳处理 这个只有客户端主连接需要加，普通的转发连接不需要
-            ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "idle",
+            ctx.pipeline().addAfter(ENCODE_HANDLER_NAME, "idle",
                     new IdleStateHandler(DEFAULT_IDLE_TIMEOUT, 0, 0, TimeUnit.SECONDS));
-            ctx.pipeline().addAfter(Constants.ENCODE_HANDLER_NAME, "heartbeat", new HeartbeatHandler());
+            ctx.pipeline().addAfter(ENCODE_HANDLER_NAME, "heartbeat", new HeartbeatHandler());
 
             configCommunication(ctx);
         } else {
@@ -159,17 +159,23 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
         }
 
         EncryptTypeEnum encryptType = masterServer.getConfig().getEncryptType();
-        if (EncryptTypeEnum.SIMPLE == encryptType) {
+        if (EncryptTypeEnum.NONE == encryptType) {
+            logger.warn("注意：通信未加密！");
+        } else if (EncryptTypeEnum.SIMPLE == encryptType) {
             String sid = masterServer.getConfig().getSid();
             // 加密
             pipeline.addFirst(new SimpleEncryptionEncoder(sid));
             pipeline.addFirst(new SimpleEncryptionDecoder(sid));
+        } else {
+            // TODO 其他加密方式暂不支持
+            logger.warn("！！！暂时不支持的加密方式：{}", encryptType);
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (registered) {
+            masterServer.unregistClientByToken(token);
             ctx.fireExceptionCaught(cause);
             return;
         }
@@ -181,9 +187,9 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void setAttribute(ChannelHandlerContext ctx) {
-        Attribute<String> cidAttr = ctx.channel().attr(Constants.ATTR_KEY_CID);
+        Attribute<String> cidAttr = ctx.channel().attr(ATTR_KEY_CID);
         cidAttr.set(cid);
-        Attribute<String> tokenAttr = ctx.channel().attr(Constants.ATTR_KEY_TOKEN);
+        Attribute<String> tokenAttr = ctx.channel().attr(ATTR_KEY_TOKEN);
         tokenAttr.set(token);
     }
 
@@ -192,7 +198,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
         super.channelInactive(ctx);
         logger.info("【主服务】连接:{} 断开了", ctx.channel());
         if (registered) {
-            masterServer.unregistClient(cid);
+            masterServer.unregistClientByToken(token);
         }
     }
 

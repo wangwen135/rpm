@@ -48,7 +48,6 @@ public class RemoteChannelBuildHandler extends ChannelInboundHandlerAdapter {
 
                 outboundChannel.pipeline().addLast(new TransmissionHandler(inboundChannel));
                 
-                System.out.println("！！！！！！！！！！！！开始读取数据了");
                 inboundChannel.read();
                 outboundChannel.read();
             } catch (Exception e) {

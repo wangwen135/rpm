@@ -1,6 +1,6 @@
 package com.wwh.rpm.tools.proxy;
 
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
@@ -24,8 +24,8 @@ public final class SocksServer {
 
     public static void main(String[] args) throws Exception {
 
-        RpmMsgPrinter.printMsg("启动 SocksServer...");
-        RpmMsgPrinter.printMsg("监听地址：{}:{}", HOST, PORT);
+        LogUtil.msgLog.info("启动 SocksServer...");
+        LogUtil.msgLog.info("监听地址：{}:{}", HOST, PORT);
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -43,6 +43,6 @@ public final class SocksServer {
             workerGroup.shutdownGracefully();
         }
 
-        RpmMsgPrinter.printMsg("SocksServer 结束！");
+        LogUtil.msgLog.info("SocksServer 结束！");
     }
 }

@@ -39,7 +39,7 @@ public class Shutdown {
 
             System.out.print("关闭结果：");
             System.out.println(result == null ? "未知" : result == true ? "成功" : "失败");
-            MsgPrintUtil.countDownPrint(3);
+            // MsgPrintUtil.countDownPrint(3);
         } catch (Exception e) {
             e.printStackTrace();
             MsgPrintUtil.countDownPrint(5);

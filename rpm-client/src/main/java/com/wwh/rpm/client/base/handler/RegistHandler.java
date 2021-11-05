@@ -1,5 +1,7 @@
 package com.wwh.rpm.client.base.handler;
 
+import static com.wwh.rpm.protocol.ProtocolConstants.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +26,7 @@ import io.netty.handler.codec.compression.JdkZlibEncoder;
 
 /**
  * 客户端注册
- * 
+ *
  * @author wangwh
  * @date 2020-12-31
  */
@@ -58,7 +60,7 @@ public class RegistHandler extends ChannelInboundHandlerAdapter {
 
         int rand = RandomNumberCodec.decrypt(authPacket, sid);
         logger.debug("收到的随机数为：{}", rand);
-        rand++;
+        rand += AUTH_RANDOM_NUMBER_INCREMENT;
         AuthPacket reply = RandomNumberCodec.encrypt(rand, sid);
         ctx.writeAndFlush(reply);
 
@@ -74,6 +76,11 @@ public class RegistHandler extends ChannelInboundHandlerAdapter {
         configCommunication(ctx);
     }
 
+    /**
+     * 配置压缩和加密方式
+     *
+     * @param ctx
+     */
     private void configCommunication(ChannelHandlerContext ctx) {
         ChannelPipeline pipeline = ctx.pipeline();
         CommConfig commConfig = baseClient.getCommConfig();
@@ -90,11 +97,15 @@ public class RegistHandler extends ChannelInboundHandlerAdapter {
         }
 
         EncryptTypeEnum encryptType = commConfig.getEncryptType();
-        if (EncryptTypeEnum.SIMPLE == encryptType) {
+        if (EncryptTypeEnum.NONE == encryptType) {
+            logger.warn("注意：与服务端的通信未加密！");
+        } else if (EncryptTypeEnum.SIMPLE == encryptType) {
             String sid = baseClient.getConfig().getServerConf().getSid();
             // 加密
             pipeline.addFirst(new SimpleEncryptionEncoder(sid));
             pipeline.addFirst(new SimpleEncryptionDecoder(sid));
+        } else {
+            logger.warn("暂时不支持的加密方式：{}", encryptType);
         }
     }
 

@@ -11,7 +11,7 @@ import com.wwh.rpm.client.config.pojo.ForwardOverServer;
 import com.wwh.rpm.client.config.pojo.ServerConf;
 import com.wwh.rpm.common.config.YamlConfigReader;
 import com.wwh.rpm.common.exception.ConfigException;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 
 /**
  * @author wwh
@@ -79,7 +79,7 @@ public class ClinetConfiguration {
     }
 
     public static void printClientConfig(ClientConfig config) {
-        RpmMsgPrinter.printMsg(config.toPrettyString());
+        LogUtil.msgLog.info(config.toPrettyString());
     }
 
     public static void check(ClientConfig clientConfig) throws ConfigException {

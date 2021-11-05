@@ -60,7 +60,7 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
         } else {
             
 
-            System.err.println("TT 从 " + ctx.channel() + "  读取数据 写入 " + outboundChannel);
+            //System.err.println("TT 从 " + ctx.channel() + "  读取数据 写入 " + outboundChannel);
 
             outboundChannel.writeAndFlush(msg);
             ctx.channel().read();

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.connection.SimpleChannelWarp;
 import com.wwh.rpm.common.exception.RPMException;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.server.ServerManager;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
@@ -60,7 +60,7 @@ public class MasterServer {
 
     public void shutdown() {
         forwardManager.shutdown();
-        
+
         logger.info("主服务关闭线程池...");
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
@@ -93,7 +93,7 @@ public class MasterServer {
 
         channel = b.bind(getConfig().getHost(), getConfig().getPort()).sync().channel();
 
-        RpmMsgPrinter.printMsg("主服务启动在 {}:{}", getConfig().getHost(), getConfig().getPort());
+        LogUtil.msgLog.info("主服务启动在 {}:{}", getConfig().getHost(), getConfig().getPort());
 
         channel.closeFuture().addListener(new ChannelFutureListener() {
             @Override
@@ -122,7 +122,6 @@ public class MasterServer {
      * @param channel
      */
     public void registClient(String cid, String token, Channel channel) {
-        RpmMsgPrinter.printMsg("客户端注册！ cid={}  address={}", cid, channel.remoteAddress());
         clientTokenManager.regist(cid, token, channel);
     }
 
@@ -131,9 +130,8 @@ public class MasterServer {
      * 
      * @param cid
      */
-    public void unregistClient(String cid) {
-        RpmMsgPrinter.printMsg("客户端注销！ cid={}", cid);
-        clientTokenManager.unregist(cid);
+    public void unregistClientByToken(String token) {
+        clientTokenManager.unregistByToken(token);
     }
 
     /**

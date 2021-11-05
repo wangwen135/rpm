@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.connection.SimpleChannelWarp;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 import com.wwh.rpm.server.subserver.handler.SubserverHandlerInitializer;
@@ -62,7 +62,7 @@ public class Subserver {
 
         channel = b.bind(forwardConfig.getListenHost(), forwardConfig.getListenPort()).sync().channel();
 
-        RpmMsgPrinter.printMsg("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
+        LogUtil.msgLog.info("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
 
     }
 

@@ -20,13 +20,13 @@ ctrlPort: 56791
 
 # 经由客户端转发的列表
 forwardOverClient:
-- listenHost: 0.0.0.0
-  listenPort: 18080
-  clientId: 本地测试客户端A1
-  forwardHost: 10.10.66.223
-  forwardPort: 51002
+#- listenHost: 0.0.0.0
+#  listenPort: 18080
+#  clientId: 本地测试客户端A1
+#  forwardHost: 10.10.66.223
+#  forwardPort: 51002
 
 # 其他参数
 arguments:
-  enableNettyLog: true
+  enableNettyLog: false
   nettyLogLevel: INFO

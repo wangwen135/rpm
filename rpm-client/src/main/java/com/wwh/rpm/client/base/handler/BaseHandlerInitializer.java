@@ -25,8 +25,10 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class BaseHandlerInitializer extends ChannelInitializer<SocketChannel> {
 
     private BaseClient baseClient;
- // 事件处理线程
-    EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(16);
+
+// TODO     
+// 事件处理线程
+//    EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(16);
 
     public BaseHandlerInitializer(BaseClient baseClient) {
         this.baseClient = baseClient;
@@ -52,7 +54,8 @@ public class BaseHandlerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new ClientHeartbeatHandler());
 
         // 服务端指令处理
-        pipeline.addLast(eventExecutorGroup,new CommandHandler(baseClient));
+//        pipeline.addLast(eventExecutorGroup,new CommandHandler(baseClient));
+        pipeline.addLast(new CommandHandler(baseClient));
 
     }
 

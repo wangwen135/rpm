@@ -3,7 +3,7 @@ package com.wwh.rpm.ctrl.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.ctrl.Closeer;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -60,7 +60,7 @@ public class CtrlServer {
                 }
             });
 
-            RpmMsgPrinter.printMsg("控制服务启动在端口 {}", ctrlPort);
+            LogUtil.msgLog.info("控制服务启动在端口 {}", ctrlPort);
 
         } catch (Exception e) {
             eventGroup.shutdownGracefully();

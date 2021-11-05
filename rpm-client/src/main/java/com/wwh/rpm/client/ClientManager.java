@@ -20,78 +20,84 @@ import io.netty.channel.nio.NioEventLoopGroup;
  * @author wangwh
  */
 public class ClientManager implements Closeer {
-	private static final Logger logger = LoggerFactory.getLogger(ClientManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
-	private ClientConfig config;
-	private BaseClient baseClient;
-	private SubserverManager subserverManager;
+    private ClientConfig config;
+    private BaseClient baseClient;
+    private SubserverManager subserverManager;
 
-	private ConnectionProvider connectionProvider;
+    private ConnectionProvider connectionProvider;
 
-	// 一次性
-	private AtomicBoolean isStartup = new AtomicBoolean(false);
+    private static Object lock = new Object();
 
-	private EventLoopGroup workerGroup;
+    // 一次性
+    private AtomicBoolean isStartup = new AtomicBoolean(false);
 
-	public ClientManager(ClientConfig config) {
-		this.config = config;
-		baseClient = new BaseClient(this);
-		subserverManager = new SubserverManager(this);
-		connectionProvider = new ConnectionProvider(this);
-		// 创建线程池
-		workerGroup = new NioEventLoopGroup();
-	}
+    private EventLoopGroup workerGroup;
 
-	public void startClient() throws Exception {
-		if (!isStartup.compareAndSet(false, true)) {
-			logger.error("客户端已是启动状态 ！");
-			return;
-		}
+    public ClientManager(ClientConfig config) {
+        this.config = config;
+        baseClient = new BaseClient(this);
+        subserverManager = new SubserverManager(this);
+        connectionProvider = new ConnectionProvider(this);
+        // 创建线程池
+        workerGroup = new NioEventLoopGroup();
+    }
 
-		logger.info("启动客户端...");
-		baseClient.start();
+    public void startClient() throws Exception {
+        if (!isStartup.compareAndSet(false, true)) {
+            logger.error("客户端已是启动状态 ！");
+            return;
+        }
 
-		logger.debug("等待客户端注册完成...");
-		baseClient.waitToken();
+        synchronized (lock) {
+            logger.info("启动客户端...");
+            baseClient.start();
 
-		logger.info("开始启动子服务...");
-		subserverManager.startAll();
-	}
+            logger.debug("等待客户端注册完成...");
+            baseClient.waitToken();
 
-	public void shutdownClient() {
-		logger.info("关闭客户端...");
-		baseClient.shutdown();
+            logger.info("开始启动子服务...");
+            subserverManager.startAll();
+        }
+    }
 
-		logger.info("关闭子服务...");
-		subserverManager.stopAll();
+    public void shutdownClient() {
+        synchronized (lock) {
+            logger.info("关闭客户端...");
+            baseClient.shutdown();
 
-		logger.info("关闭线程池...");
-		workerGroup.shutdownGracefully();
-	}
+            logger.info("关闭子服务...");
+            subserverManager.stopAll();
 
-	public EventLoopGroup getWorkerGroup() {
-		return workerGroup;
-	}
+            logger.info("关闭线程池...");
+            workerGroup.shutdownGracefully();
+        }
+    }
 
-	public String getToken() {
-		return baseClient.getToken();
-	}
+    public EventLoopGroup getWorkerGroup() {
+        return workerGroup;
+    }
 
-	public ClientConfig getConfig() {
-		return config;
-	}
+    public String getToken() {
+        return baseClient.getToken();
+    }
 
-	public BaseClient getBaseClient() {
-		return baseClient;
-	}
+    public ClientConfig getConfig() {
+        return config;
+    }
 
-	public ConnectionProvider getConnectionProvider() {
-		return connectionProvider;
-	}
+    public BaseClient getBaseClient() {
+        return baseClient;
+    }
 
-	@Override
-	public void close() {
-		ClientStarter.shutdownNotify();
-	}
+    public ConnectionProvider getConnectionProvider() {
+        return connectionProvider;
+    }
+
+    @Override
+    public void close() {
+        ClientStarter.shutdownNotify();
+    }
 
 }
