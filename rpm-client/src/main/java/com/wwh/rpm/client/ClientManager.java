@@ -28,10 +28,11 @@ public class ClientManager implements Closeer {
 
     private ConnectionProvider connectionProvider;
 
+    private static Object lock = new Object();
+
     // 一次性
     private AtomicBoolean isStartup = new AtomicBoolean(false);
 
-    private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
     public ClientManager(ClientConfig config) {
@@ -40,8 +41,6 @@ public class ClientManager implements Closeer {
         subserverManager = new SubserverManager(this);
         connectionProvider = new ConnectionProvider(this);
         // 创建线程池
-        int bossPoolSize = config.getForwardOverServer() == null ? 1 : config.getForwardOverServer().size();
-        bossGroup = new NioEventLoopGroup(bossPoolSize);
         workerGroup = new NioEventLoopGroup();
     }
 
@@ -51,30 +50,29 @@ public class ClientManager implements Closeer {
             return;
         }
 
-        logger.info("启动客户端...");
-        baseClient.start(workerGroup);
+        synchronized (lock) {
+            logger.info("启动客户端...");
+            baseClient.start();
 
-        logger.debug("等待客户端注册完成...");
-        baseClient.waitToken();
+            logger.debug("等待客户端注册完成...");
+            baseClient.waitToken();
 
-        logger.info("开始启动子服务...");
-        subserverManager.startAll(bossGroup, workerGroup);
+            logger.info("开始启动子服务...");
+            subserverManager.startAll();
+        }
     }
 
     public void shutdownClient() {
-        logger.info("关闭客户端...");
-        baseClient.shutdown();
+        synchronized (lock) {
+            logger.info("关闭客户端...");
+            baseClient.shutdown();
 
-        logger.info("关闭子服务...");
-        subserverManager.stopAll();
+            logger.info("关闭子服务...");
+            subserverManager.stopAll();
 
-        logger.info("关闭线程池...");
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
-    }
-
-    public EventLoopGroup getBossGroup() {
-        return bossGroup;
+            logger.info("关闭线程池...");
+            workerGroup.shutdownGracefully();
+        }
     }
 
     public EventLoopGroup getWorkerGroup() {
@@ -87,6 +85,10 @@ public class ClientManager implements Closeer {
 
     public ClientConfig getConfig() {
         return config;
+    }
+
+    public BaseClient getBaseClient() {
+        return baseClient;
     }
 
     public ConnectionProvider getConnectionProvider() {

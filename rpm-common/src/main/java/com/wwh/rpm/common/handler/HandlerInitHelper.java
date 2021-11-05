@@ -1,5 +1,7 @@
 package com.wwh.rpm.common.handler;
 
+import static com.wwh.rpm.common.Constants.LOGGER_HANDLER_NAME;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +44,7 @@ public class HandlerInitHelper {
                 }
             }
             logger.debug("添加LoggingHandler，级别：{}", logLevel);
-            pipeline.addLast(new LoggingHandler(logLevel));
+            pipeline.addLast(LOGGER_HANDLER_NAME, new LoggingHandler(logLevel));
         }
     }
 }

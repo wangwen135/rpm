@@ -3,11 +3,11 @@ package com.wwh.rpm.protocol;
 /**
  * <pre>
  * 协议常量
- * 
+ *
  * 协议暂定
  * 【魔法数字 1】【类型 1】【长度 4】【对象序列化字节】
  * </pre>
- * 
+ *
  * @author wwh
  *
  */
@@ -69,7 +69,26 @@ public class ProtocolConstants {
     public static final byte TYPE_FORWARD_COMMAND_RESULT = 32;
 
     /**
+     * 传输数据
+     */
+    public static final byte TYPE_TRANSPORT = 40;
+
+    /**
      * 关闭指令
      */
     public static final byte TYPE_SHUTDOWN = 100;
+
+
+    /**
+     * 授权随机数最小值
+     */
+    public static final int AUTH_RANDOM_NUMBER_MIN = 1111111;
+    /**
+     * 授权随机数最大值
+     */
+    public static final int AUTH_RANDOM_NUMBER_MAX = 9999999;
+    /**
+     * 授权随机数增量
+     */
+    public static final int AUTH_RANDOM_NUMBER_INCREMENT = 123456;
 }

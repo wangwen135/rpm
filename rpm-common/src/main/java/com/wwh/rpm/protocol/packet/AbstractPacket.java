@@ -13,12 +13,25 @@ public abstract class AbstractPacket implements Serializable {
 
     private Long time;
 
+    /**
+     * 特征混淆用
+     */
+    private String nonce;
+
     public Long getTime() {
         return time;
     }
 
     public void setTime(Long time) {
         this.time = time;
+    }
+
+    public String getNonce() {
+        return nonce;
+    }
+
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
     }
 
     public abstract byte getType();

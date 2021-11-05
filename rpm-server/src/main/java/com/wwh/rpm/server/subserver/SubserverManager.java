@@ -2,16 +2,15 @@ package com.wwh.rpm.server.subserver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.common.connection.SimpleChannelWarp;
 import com.wwh.rpm.server.ServerManager;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
-
-import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
 
 /**
  * 子服务管理器
@@ -33,11 +32,9 @@ public class SubserverManager {
     /**
      * 启动全部子服务
      * 
-     * @param bossGroup
-     * @param workerGroup
      * @throws Exception
      */
-    public void startAll(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception {
+    public void startAll() throws Exception {
         List<ForwardOverClient> configList = serverManager.getConfig().getForwardOverClient();
 
         if (configList == null || configList.isEmpty()) {
@@ -48,7 +45,7 @@ public class SubserverManager {
         for (ForwardOverClient forwardOverClient : configList) {
             Subserver ser = new Subserver(this, forwardOverClient);
             subserverList.add(ser);
-            ser.start(bossGroup, workerGroup);
+            ser.start();
         }
     }
 
@@ -66,13 +63,14 @@ public class SubserverManager {
     }
 
     /**
-     * 获取一个客户端的转发通道，阻塞
+     * 获取一个客户端的转发通道
      * 
      * @param subserver
-     * @return
+     * @param callback  回调方法（成功、失败、超时）
      */
-    public Channel acquireClientForwardChannel(Subserver subserver) {
+    public void acquireClientForwardChannel(Subserver subserver, Consumer<SimpleChannelWarp> callback) {
         ForwardOverClient forwardConfig = subserver.getForwardConfig();
-        return serverManager.getMasterServer().acquireClientForwardChannel(forwardConfig);
+        serverManager.getMasterServer().acquireClientForwardChannel(forwardConfig, callback);
     }
+
 }

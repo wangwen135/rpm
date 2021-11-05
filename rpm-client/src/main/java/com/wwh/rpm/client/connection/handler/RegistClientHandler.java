@@ -3,14 +3,22 @@ package com.wwh.rpm.client.connection.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.client.base.BaseClient;
 import com.wwh.rpm.client.connection.FetchChannelWarp;
 import com.wwh.rpm.client.connection.event.RegistSuccessEvent;
+import com.wwh.rpm.common.config.pojo.CommConfig;
+import com.wwh.rpm.common.enums.EncryptTypeEnum;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.protocol.packet.auth.TokenPacket;
 import com.wwh.rpm.protocol.packet.general.SuccessPacket;
+import com.wwh.rpm.protocol.security.SimpleEncryptionDecoder;
+import com.wwh.rpm.protocol.security.SimpleEncryptionEncoder;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.compression.JdkZlibDecoder;
+import io.netty.handler.codec.compression.JdkZlibEncoder;
 
 /**
  * 注册客户端
@@ -21,16 +29,17 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 public class RegistClientHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(RegistClientHandler.class);
 
-    private String token;
+    private BaseClient baseClient;
     private FetchChannelWarp fetchChannelWarp;
     private boolean notifyFetchChannelWarp = false;
 
-    public RegistClientHandler(String token, FetchChannelWarp fetchChannelWarp) {
-        this(token, fetchChannelWarp, false);
+    public RegistClientHandler(BaseClient baseClient, FetchChannelWarp fetchChannelWarp) {
+        this(baseClient, fetchChannelWarp, false);
     }
 
-    public RegistClientHandler(String token, FetchChannelWarp fetchChannelWarp, boolean notifyFetchChannelWarp) {
-        this.token = token;
+    public RegistClientHandler(BaseClient baseClient, FetchChannelWarp fetchChannelWarp,
+            boolean notifyFetchChannelWarp) {
+        this.baseClient = baseClient;
         this.fetchChannelWarp = fetchChannelWarp;
         this.notifyFetchChannelWarp = notifyFetchChannelWarp;
     }
@@ -41,6 +50,9 @@ public class RegistClientHandler extends ChannelInboundHandlerAdapter {
             logger.debug("服务端返回 注册成功！");
             // 注册成功移除处理器
             ctx.pipeline().remove(this);
+
+            // 通讯参数
+            configCommunication(ctx);
 
             if (notifyFetchChannelWarp) {
                 fetchChannelWarp.setSuccess(ctx.channel());
@@ -57,11 +69,34 @@ public class RegistClientHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    private void configCommunication(ChannelHandlerContext ctx) {
+        ChannelPipeline pipeline = ctx.pipeline();
+        CommConfig commConfig = baseClient.getCommConfig();
+        boolean compression = commConfig.getEnableCompression();
+        // 是否需要进行压缩
+        if (compression) {
+            int level = commConfig.getCompressionLevel();
+            logger.debug("启用压缩，压缩级别{}", level);
+            // 压缩
+            pipeline.addFirst(new JdkZlibEncoder(level));
+            pipeline.addFirst(new JdkZlibDecoder());
+        }
+
+        EncryptTypeEnum encryptType = commConfig.getEncryptType();
+        if (EncryptTypeEnum.SIMPLE == encryptType) {
+            logger.debug("使用简单加密");
+            String sid = baseClient.getConfig().getServerConf().getSid();
+            // 加密
+            pipeline.addFirst(new SimpleEncryptionEncoder(sid));
+            pipeline.addFirst(new SimpleEncryptionDecoder(sid));
+        }
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         TokenPacket tokenPacket = new TokenPacket();
-        tokenPacket.setToken(token);
-        logger.debug("向服务器发送认证信息，token：{}", token);
+        tokenPacket.setToken(baseClient.getToken());
+        logger.debug("向服务器发送认证信息，token：{}", baseClient.getToken());
         ctx.writeAndFlush(tokenPacket);
         ctx.read();
     }

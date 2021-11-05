@@ -2,8 +2,10 @@ package com.wwh.rpm.server.master;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.wwh.rpm.common.exception.RPMException;
+import com.wwh.rpm.common.utils.LogUtil;
 
 import io.netty.channel.Channel;
 
@@ -15,25 +17,69 @@ import io.netty.channel.Channel;
  */
 public class ClientTokenManager {
 
+    private final ReentrantLock lock = new ReentrantLock();
+
     private Map<String, ClientToken> cidMap = new HashMap<>();
     private Map<String, ClientToken> tokenMap = new HashMap<>();
+
+    private boolean kickoutModel = false;
 
     public void regist(String cid, String token, Channel channel) {
         if (cid == null || token == null || channel == null) {
             throw new RPMException("参数不能为空");
         }
-        unregist(cid);
 
-        ClientToken ct = new ClientToken(cid, token, channel);
-        cidMap.put(cid, ct);
-        tokenMap.put(token, ct);
+        lock.lock();
+        try {
+            LogUtil.msgLog.info("客户端注册！ cid={}  address={}", cid, channel.remoteAddress());
+
+            // 这里应该是不能踢掉别人的
+            if (kickoutModel) {
+                unregistByCid(cid);
+            } else {
+                ClientToken ct = cidMap.get(cid);
+                if (ct != null) {
+                    throw new RPMException("已有客户端【" + cid + "】在线，token=" + ct.getToken() + " address="
+                            + ct.getChannel().remoteAddress());
+                }
+            }
+
+            ClientToken ct = new ClientToken(cid, token, channel);
+            cidMap.put(cid, ct);
+            tokenMap.put(token, ct);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public void unregist(String cid) {
-        ClientToken ct = cidMap.remove(cid);
-        if (ct != null) {
-            tokenMap.remove(ct.getToken());
+    public void unregistByCid(String cid) {
+        lock.lock();
+        try {
+            ClientToken ct = cidMap.remove(cid);
+            if (ct != null) {
+                LogUtil.msgLog.info("注销客户端【{}】{} token={}", ct.getCid(), ct.getChannel().remoteAddress(),
+                        ct.getToken());
+                tokenMap.remove(ct.getToken());
+                ct.getChannel().close();
+            }
+        } finally {
+            lock.unlock();
         }
+    }
+
+    public void unregistByToken(String token) {
+        lock.lock();
+        try {
+            ClientToken ct = tokenMap.remove(token);
+            if (ct != null) {
+                LogUtil.msgLog.info("注销客户端【{}】{} token={}", ct.getCid(), ct.getChannel().remoteAddress(), token);
+                cidMap.remove(ct.getCid());
+                ct.getChannel().close();
+            }
+        } finally {
+            lock.unlock();
+        }
+
     }
 
     public String getCidByToken(String token) {
@@ -63,7 +109,7 @@ public class ClientTokenManager {
         }
     }
 
-    class ClientToken {
+    private class ClientToken {
         private String cid;
         private String token;
         private Channel channel;

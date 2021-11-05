@@ -55,19 +55,31 @@ public class TransmissionHandler extends ChannelInboundHandlerAdapter {
             throw new RPMException("输出通道不能为空");
         }
         if (!outboundChannel.isActive()) {
-            logger.debug("【转发】输出通道不是活跃状态，关闭连接");
+            logger.warn("【转发】输出通道不是活跃状态，关闭连接");
             ctx.close();
         } else {
-            outboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
+            
+
+            //System.err.println("TT 从 " + ctx.channel() + "  读取数据 写入 " + outboundChannel);
+
+            outboundChannel.writeAndFlush(msg);
+            ctx.channel().read();
+            /*outboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) {
                     if (future.isSuccess()) {
+            
+                        
+                        System.err.println("future.isSuccess");
+                        
                         ctx.channel().read();
                     } else {
                         future.channel().close();
                     }
                 }
-            });
+            });*/
+            
+//            ctx.channel().read();
         }
     }
 

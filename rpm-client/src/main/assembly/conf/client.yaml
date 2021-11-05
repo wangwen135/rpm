@@ -7,20 +7,22 @@ serverConf:
   port: 9999
   sid: xdkjadfqwwefasdfasdfel123
 
-# 转发配置 支持多个
-# forwardHost 相对于服务端的目标地址
+
+# 通过服务进行转发的配置 支持多个
 # listenHost 本地监听地址
+# forwardHost 相对于服务端的目标地址
 forwardOverServer:
-- forwardHost: 127.0.0.1
-  forwardPort: 1080
-  listenHost: 127.0.0.1
+- listenHost: 127.0.0.1
   listenPort: 21080
+  forwardHost: 127.0.0.1
+  forwardPort: 1080
 
 
 # 控制端口，默认56781
 ctrlPort: 56781
 
-# 其他参数
-#arguments:
-#  enableNettyLog: true
-#  nettyLogLevel: INFO
+
+# 其他参数（可选）
+arguments:
+  enableNettyLog: false
+  nettyLogLevel: INFO

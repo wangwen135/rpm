@@ -1,4 +1,4 @@
-package com.wwh.rpm.client.connection;
+package com.wwh.rpm.common.connection;
 
 import com.wwh.rpm.common.exception.RPMException;
 
@@ -10,10 +10,8 @@ import io.netty.channel.Channel;
  * 为支持异步
  * </pre>
  * 
- * @author wangwh
- * @date 2021-1-29
  */
-public class FetchChannelWarp {
+public class ChannelWarp {
 
     private static final int DEFAULT_WAIT_TIME_SECOND = 6;
 
@@ -78,7 +76,7 @@ public class FetchChannelWarp {
         throw new RPMException("获取通道超时");
     }
 
-    private Channel get() throws Exception {
+    public Channel get() throws Exception {
         if (channel != null) {
             return channel;
         }
@@ -96,7 +94,7 @@ public class FetchChannelWarp {
      * 
      * @param channel 成功获取到的通道
      */
-    public void setSuccess(Channel channel) {
+    public synchronized void setSuccess(Channel channel) {
         if (isClose) {
             closeChannel(channel);
             this.cause = new RPMException("已经关闭");
@@ -116,7 +114,7 @@ public class FetchChannelWarp {
      * 
      * @param cause 失败原因
      */
-    public void setError(Throwable cause) {
+    public synchronized void setError(Throwable cause) {
         if (isClose) {
             cause = new RPMException("已经标记为关闭", cause);
         } else if (isTimeout) {
@@ -146,6 +144,10 @@ public class FetchChannelWarp {
      */
     public boolean isTimeout() {
         return isTimeout;
+    }
+
+    public synchronized void setTimeOut() {
+
     }
 
     private void closeChannel(Channel channel) {

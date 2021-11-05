@@ -1,9 +1,12 @@
 package com.wwh.rpm.server.subserver;
 
+import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.connection.SimpleChannelWarp;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 import com.wwh.rpm.server.subserver.handler.SubserverHandlerInitializer;
@@ -12,6 +15,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
@@ -26,12 +30,15 @@ public class Subserver {
 
     private SubserverManager subserverManager;
     private ForwardOverClient forwardConfig;
-
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
     private Channel channel;
 
     public Subserver(SubserverManager subserverManager, ForwardOverClient forwardOverClient) {
         this.subserverManager = subserverManager;
         this.forwardConfig = forwardOverClient;
+        this.bossGroup = new NioEventLoopGroup(1);
+        this.workerGroup = new NioEventLoopGroup();
     }
 
     public SubserverManager getSubserverManager() {
@@ -41,11 +48,9 @@ public class Subserver {
     /**
      * 启动
      *
-     * @param bossGroup
-     * @param workerGroup
      * @throws Exception
      */
-    public void start(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception {
+    public void start() throws Exception {
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
@@ -57,12 +62,16 @@ public class Subserver {
 
         channel = b.bind(forwardConfig.getListenHost(), forwardConfig.getListenPort()).sync().channel();
 
-        RpmMsgPrinter.printMsg("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
+        LogUtil.msgLog.info("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
 
     }
 
     public void shutdown() {
         try {
+            logger.debug("子服务关闭线程池...");
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+
             if (channel != null && channel.isActive()) {
                 channel.close().sync();
             }
@@ -94,12 +103,11 @@ public class Subserver {
     }
 
     /**
-     * 获取一个客户端的转发通道，阻塞
+     * 异步获取客户端连接
      * 
-     * @return
+     * @param callback 回调方法（成功、失败、超时）
      */
-    public Channel acquireClientForwardChannel() {
-        return subserverManager.acquireClientForwardChannel(this);
+    public void acquireClientForwardChannel(Consumer<SimpleChannelWarp> callback) {
+        subserverManager.acquireClientForwardChannel(this, callback);
     }
-
 }

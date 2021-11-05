@@ -6,9 +6,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.config.YamlConfigReader;
 import com.wwh.rpm.common.exception.ConfigException;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
 
@@ -72,7 +73,7 @@ public class ServerConfiguration {
     }
 
     public static void printServerConfig(ServerConfig config) {
-        RpmMsgPrinter.printMsg(config.toPrettyString());
+        LogUtil.msgLog.info(config.toPrettyString());
     }
 
     public static void check(ServerConfig serverConfig) throws ConfigException {
@@ -91,6 +92,11 @@ public class ServerConfiguration {
 
         if (serverConfig.getPort() < 1 || serverConfig.getPort() > 65535) {
             throw new ConfigException("监听端口【port】配置错误");
+        }
+
+        Integer compressionLevel = serverConfig.getCompressionLevel();
+        if (compressionLevel < Constants.COMPRESSION_LEVEL_MIN || compressionLevel > Constants.COMPRESSION_LEVEL_MAX) {
+            throw new ConfigException("压缩级别【compressionLevel】配置错误，只支持 0-9");
         }
 
         // 转发配置

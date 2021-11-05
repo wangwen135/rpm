@@ -7,11 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.ClientManager;
+import com.wwh.rpm.client.ClientStarter;
 import com.wwh.rpm.client.base.handler.BaseHandlerInitializer;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConf;
 import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.common.Constants;
+import com.wwh.rpm.common.config.pojo.CommConfig;
 import com.wwh.rpm.common.exception.RPMException;
 
 import io.netty.bootstrap.Bootstrap;
@@ -20,14 +22,14 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**
  * <pre>
- * 客户端
- * 这个可以走ssl，通讯量比较小，主要用于维持长连接。。
- * 
- * 响应服务端的指令
+ * 主客户端
+ * 1. 注册
+ * 2. 响应服务端的指令
  * </pre>
  * 
  * @author wwh
@@ -47,20 +49,33 @@ public class BaseClient {
      */
     private String token;
 
+    /**
+     * 通讯配置
+     */
+    private CommConfig commConfig;
+
     private Object lock = new Object();
+
+    private EventLoopGroup workerGroup;
 
     public BaseClient(ClientManager clientManager) {
         this.clientManager = clientManager;
+        workerGroup = new NioEventLoopGroup();
     }
 
     public boolean isRunning() {
         return isRunning.get();
     }
 
+    /**
+     * 关闭
+     */
     public void shutdown() {
         synchronized (lock) {
             lock.notifyAll();
         }
+        logger.debug("主服务关闭线程池");
+        workerGroup.shutdownGracefully();
 
         if (!isRunning()) {
             logger.warn("主服务没有启动");
@@ -71,7 +86,12 @@ public class BaseClient {
         }
     }
 
-    public void start(EventLoopGroup workerGroup) throws Exception {
+    /**
+     * 启动
+     * 
+     * @throws Exception
+     */
+    public void start() throws Exception {
         if (!isRunning.compareAndSet(false, true)) {
             logger.error("客户端正在运行！");
             return;
@@ -92,7 +112,7 @@ public class BaseClient {
                 synchronized (lock) {
                     lock.notifyAll();
                 }
-                clientManager.close();
+                ClientStarter.shutdownNotify();
             }
         });
     }
@@ -139,4 +159,13 @@ public class BaseClient {
     public ConnectionProvider getConnectionProvider() {
         return clientManager.getConnectionProvider();
     }
+
+    public CommConfig getCommConfig() {
+        return commConfig;
+    }
+
+    public void setCommConfig(CommConfig commConfig) {
+        this.commConfig = commConfig;
+    }
+
 }

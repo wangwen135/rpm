@@ -5,13 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
+import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.client.subserver.handler.SubserverHandlerInitializer;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
@@ -26,22 +28,23 @@ public class Subserver {
 
     private SubserverManager subserverManager;
     private ForwardOverServer forwardConfig;
-
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
     private Channel channel;
 
     public Subserver(SubserverManager subserverManager, ForwardOverServer forwardConfig) {
         this.subserverManager = subserverManager;
         this.forwardConfig = forwardConfig;
+        this.bossGroup = new NioEventLoopGroup(1);
+        this.workerGroup = new NioEventLoopGroup();
     }
 
     /**
      * 启动
      * 
-     * @param bossGroup
-     * @param workerGroup
      * @throws Exception
      */
-    public void start(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception {
+    public void start() throws Exception {
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
@@ -53,16 +56,23 @@ public class Subserver {
 
         channel = b.bind(forwardConfig.getListenHost(), forwardConfig.getListenPort()).sync().channel();
 
-        RpmMsgPrinter.printMsg("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
+        LogUtil.msgLog.info("子主服务启动在 {}:{}", forwardConfig.getListenHost(), forwardConfig.getListenPort());
 
     }
 
-    // 停止
+    /**
+     * 关闭
+     */
     public void shutdown() {
         try {
+            logger.debug("子服务关闭线程池...");
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+
             if (channel != null && channel.isActive()) {
                 channel.close().sync();
             }
+
         } catch (InterruptedException e) {
             logger.error("关闭子服务异常", e);
         }
@@ -92,5 +102,9 @@ public class Subserver {
 
     public String getToken() {
         return subserverManager.getToken();
+    }
+
+    public ConnectionProvider getConnectionProvider() {
+        return subserverManager.getConnectionProvider();
     }
 }

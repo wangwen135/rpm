@@ -3,6 +3,7 @@ package com.wwh.rpm.client.base.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.client.ClientStarter;
 import com.wwh.rpm.protocol.packet.heartbeat.HearbeatPacket;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -13,11 +14,11 @@ import io.netty.handler.timeout.IdleStateEvent;
 /**
  * <pre>
  * 客户端心跳处理
- * 
- * 60秒没有写数据就发一个心跳包，服务端会回一个心跳包
- * 如果200秒没有收到服务端的回复则关闭
+ *
+ * 30秒没有写数据就发一个心跳包，服务端会回一个心跳包
+ * 如果100秒没有收到服务端的回复则关闭
  * </pre>
- * 
+ *
  * @author wangwh
  * @date 2020-12-30
  */
@@ -43,6 +44,7 @@ public class ClientHeartbeatHandler extends ChannelInboundHandlerAdapter {
                 logger.error("到达指定时间间隔没有收到服务端的任何数据，关闭客户端！");
                 ctx.fireUserEventTriggered(evt);
                 ctx.close();
+                ClientStarter.shutdownNotify();
             } else if (event.state() == IdleState.WRITER_IDLE) {
                 logger.debug("发送心跳包");
                 ctx.writeAndFlush(new HearbeatPacket());

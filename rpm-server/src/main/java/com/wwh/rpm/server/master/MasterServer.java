@@ -1,12 +1,14 @@
 package com.wwh.rpm.server.master;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.common.connection.SimpleChannelWarp;
 import com.wwh.rpm.common.exception.RPMException;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.server.ServerManager;
 import com.wwh.rpm.server.config.pojo.ForwardOverClient;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
@@ -18,6 +20,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
@@ -37,6 +40,9 @@ public class MasterServer {
 
     private AtomicBoolean isRunning = new AtomicBoolean(false);
 
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
+
     private Channel channel;
     // 客户端列表
 
@@ -44,6 +50,8 @@ public class MasterServer {
         this.serverManager = serverManager;
         this.clientTokenManager = new ClientTokenManager();
         this.forwardManager = new ForwardManager(this);
+        this.bossGroup = new NioEventLoopGroup(1);
+        this.workerGroup = new NioEventLoopGroup();
     }
 
     public boolean isRunning() {
@@ -51,6 +59,12 @@ public class MasterServer {
     }
 
     public void shutdown() {
+        forwardManager.shutdown();
+
+        logger.info("主服务关闭线程池...");
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+
         if (!isRunning()) {
             logger.warn("主服务没有启动");
             return;
@@ -65,7 +79,7 @@ public class MasterServer {
         }
     }
 
-    public void start(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception {
+    public void start() throws Exception {
         if (!isRunning.compareAndSet(false, true)) {
             logger.error("主服务正在运行！");
             return;
@@ -79,7 +93,7 @@ public class MasterServer {
 
         channel = b.bind(getConfig().getHost(), getConfig().getPort()).sync().channel();
 
-        RpmMsgPrinter.printMsg("主服务启动在 {}:{}", getConfig().getHost(), getConfig().getPort());
+        LogUtil.msgLog.info("主服务启动在 {}:{}", getConfig().getHost(), getConfig().getPort());
 
         channel.closeFuture().addListener(new ChannelFutureListener() {
             @Override
@@ -108,7 +122,6 @@ public class MasterServer {
      * @param channel
      */
     public void registClient(String cid, String token, Channel channel) {
-        RpmMsgPrinter.printMsg("客户端注册！ cid={}  address={}", cid, channel.remoteAddress());
         clientTokenManager.regist(cid, token, channel);
     }
 
@@ -117,9 +130,8 @@ public class MasterServer {
      * 
      * @param cid
      */
-    public void unregistClient(String cid) {
-        RpmMsgPrinter.printMsg("客户端注销！ cid={}", cid);
-        clientTokenManager.unregist(cid);
+    public void unregistClientByToken(String token) {
+        clientTokenManager.unregistByToken(token);
     }
 
     /**
@@ -157,13 +169,17 @@ public class MasterServer {
     }
 
     /**
-     * 获取一个客户端的转发通道，阻塞
+     * 获取一个客户端的转发通道
      * 
      * @param forwardConfig
-     * @return 成功时返回通道，失败或超时抛出异常
+     * @param callback
      */
-    public Channel acquireClientForwardChannel(ForwardOverClient forwardConfig) {
-        return forwardManager.acquireClientForwardChannel(forwardConfig);
+    public void acquireClientForwardChannel(ForwardOverClient forwardConfig, Consumer<SimpleChannelWarp> callback) {
+        forwardManager.acquireClientForwardChannel(forwardConfig, callback);
+    }
+
+    public ServerManager getServerManager() {
+        return serverManager;
     }
 
 }

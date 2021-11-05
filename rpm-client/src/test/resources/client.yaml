@@ -1,25 +1,28 @@
 # 客户端ID
-cid: aaaabbbbcc
+cid: 客户端对应的cid
 
 # 服务端配置
 serverConf:
-  host: 127.0.0.1
+#  host: 127.0.0.1
+  host: 139.9.78.59
+#  host: 207.148.90.239
   port: 9999
   sid: xdkjadfqwwefasdfasdfel123
 
 # 经由服务端转发的配置列表
-# forwardHost 相对于服务端的目标地址
 # listenHost 本地监听地址
+# forwardHost 相对于服务端的目标地址
 forwardOverServer:
-- forwardHost: 127.0.0.1
-  forwardPort: 1080
-  listenHost: 127.0.0.1
+- listenHost: 127.0.0.1
   listenPort: 21080
+  forwardHost: 127.0.0.1
+  forwardPort: 10808
+
 
 # 控制端口，默认56781
 ctrlPort: 56781
 
 # 其他参数
-#arguments:
-#  enableNettyLog: true
-#  nettyLogLevel: INFO
+arguments:
+  enableNettyLog: true
+  nettyLogLevel: debug

@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.exception.ConfigException;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 import com.wwh.rpm.ctrl.server.CtrlServer;
 import com.wwh.rpm.server.config.ServerConfiguration;
 import com.wwh.rpm.server.config.pojo.ServerConfig;
@@ -24,13 +24,13 @@ public class ServerStarter {
     private static Object lock = new Object();
 
     public static void main(String[] args) {
-        RpmMsgPrinter.printMsg("启动 RPM 服务端...");
+        LogUtil.msgLog.info("启动 RPM 服务端...");
         try {
             launch(args);
         } catch (Exception e) {
             logger.error("程序异常！", e);
         }
-        RpmMsgPrinter.printMsg("RPM 停止工作！");
+        LogUtil.msgLog.info("RPM 停止工作！");
     }
 
     public static void launch(String[] args) {
@@ -68,7 +68,7 @@ public class ServerStarter {
         } catch (Exception e1) {
             logger.error("启动服务异常", e1);
         } finally {
-            RpmMsgPrinter.printMsg("关闭服务...");
+            LogUtil.msgLog.info("关闭服务...");
             // 关闭
             sm.shutdownServer();
             cs.shutdown();

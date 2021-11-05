@@ -11,7 +11,7 @@ import com.wwh.rpm.client.config.pojo.ForwardOverServer;
 import com.wwh.rpm.client.config.pojo.ServerConf;
 import com.wwh.rpm.common.config.YamlConfigReader;
 import com.wwh.rpm.common.exception.ConfigException;
-import com.wwh.rpm.common.utils.RpmMsgPrinter;
+import com.wwh.rpm.common.utils.LogUtil;
 
 /**
  * @author wwh
@@ -79,7 +79,7 @@ public class ClinetConfiguration {
     }
 
     public static void printClientConfig(ClientConfig config) {
-        RpmMsgPrinter.printMsg(config.toPrettyString());
+        LogUtil.msgLog.info(config.toPrettyString());
     }
 
     public static void check(ClientConfig clientConfig) throws ConfigException {
@@ -122,19 +122,19 @@ public class ClinetConfiguration {
             ForwardOverServer f = forwardList.get(i - 1);
 
             if (StringUtils.isBlank(f.getListenHost())) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:listenHost】不能空");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:listenHost】不能空");
             }
 
             if (f.getListenPort() < 1 || f.getListenPort() > 65535) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:listenPort】错误");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:listenPort】错误");
             }
 
             if (StringUtils.isBlank(f.getForwardHost())) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:forwardHost】不能空");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:forwardHost】不能空");
             }
 
             if (f.getForwardPort() < 1 || f.getForwardPort() > 65535) {
-                throw new ConfigException("转发配置【forwardOverServer[" + i + "]:forwardPort】错误");
+                throw new ConfigException("转发配置[" + i + "]【forwardOverServer:forwardPort】错误");
             }
         }
     }
