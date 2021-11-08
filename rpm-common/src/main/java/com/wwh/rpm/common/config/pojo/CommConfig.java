@@ -11,6 +11,7 @@ import com.wwh.rpm.common.enums.EncryptTypeEnum;
  */
 public class CommConfig {
 
+    private static final String SPLIT = ":";
     /**
      * 加密方式
      */
@@ -58,6 +59,36 @@ public class CommConfig {
 
     public String toPrettyString() {
         return "加密方式=" + encryptType + ", 启用压缩=" + enableCompression + ", 压缩级别=" + compressionLevel;
+    }
+
+    /**
+     * 编码成字符串
+     * 
+     * @return
+     */
+    public String code() {
+        StringBuffer sbf = new StringBuffer();
+        sbf.append(getEncryptType().getCode());
+        sbf.append(SPLIT);
+        sbf.append(getEnableCompression() ? "T" : "F");
+        sbf.append(SPLIT);
+        sbf.append(getCompressionLevel());
+        return sbf.toString();
+    }
+
+    /**
+     * 解码成对象
+     * 
+     * @param str
+     * @return
+     */
+    public static CommConfig decode(String str) {
+        CommConfig cc = new CommConfig();
+        String[] s = str.split(SPLIT);
+        cc.setEncryptType(EncryptTypeEnum.getEnumByCode(Integer.valueOf(s[0])));
+        cc.setEnableCompression("T".equals(s[1]));
+        cc.setCompressionLevel(Integer.valueOf(s[2]));
+        return cc;
     }
 
 }
