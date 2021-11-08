@@ -70,7 +70,8 @@ public class RegistHandler extends ChannelInboundHandlerAdapter {
         logger.info("注册成功！服务端返回的token：{}", tokenPacket.getToken());
 
         baseClient.setToken(tokenPacket.getToken());
-        baseClient.setCommConfig(tokenPacket.getCommConfig());
+        String commConfig = tokenPacket.getCommConfig();
+        baseClient.setCommConfig(CommConfig.decode(commConfig));
         // 移除自己
         ctx.pipeline().remove(this);
         configCommunication(ctx);
