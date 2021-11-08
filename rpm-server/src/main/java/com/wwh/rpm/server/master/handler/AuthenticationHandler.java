@@ -1,7 +1,12 @@
 package com.wwh.rpm.server.master.handler;
 
-import static com.wwh.rpm.protocol.ProtocolConstants.*;
-import static com.wwh.rpm.common.Constants.*;
+import static com.wwh.rpm.common.Constants.ATTR_KEY_CID;
+import static com.wwh.rpm.common.Constants.ATTR_KEY_TOKEN;
+import static com.wwh.rpm.common.Constants.DEFAULT_IDLE_TIMEOUT;
+import static com.wwh.rpm.common.Constants.ENCODE_HANDLER_NAME;
+import static com.wwh.rpm.protocol.ProtocolConstants.AUTH_RANDOM_NUMBER_INCREMENT;
+import static com.wwh.rpm.protocol.ProtocolConstants.AUTH_RANDOM_NUMBER_MAX;
+import static com.wwh.rpm.protocol.ProtocolConstants.AUTH_RANDOM_NUMBER_MIN;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.wwh.rpm.common.config.pojo.CommConfig;
 import com.wwh.rpm.common.enums.EncryptTypeEnum;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.protocol.packet.auth.AuthPacket;
@@ -103,12 +109,13 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
         // 比对随机数
         if ((rand - AUTH_RANDOM_NUMBER_INCREMENT) == random) {
-            token = UUID.randomUUID().toString();
+            token = UUID.randomUUID().toString().replace("-", "");
             logger.debug("【主服务】认证通过，返回token：{}", token);
 
             TokenPacket tokenPacket = new TokenPacket();
             // 将通讯配置返回给客户端
-            tokenPacket.setCommConfig(masterServer.getConfig().getCommConfig());
+            CommConfig commConfig = masterServer.getConfig().getCommConfig();
+            tokenPacket.setCommConfig(commConfig.code());
             tokenPacket.setToken(token);
             ctx.writeAndFlush(tokenPacket);
 

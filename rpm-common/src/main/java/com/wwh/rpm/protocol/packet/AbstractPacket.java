@@ -16,7 +16,7 @@ public abstract class AbstractPacket implements Serializable {
     /**
      * 特征混淆用
      */
-    private String nonce;
+    private Integer nonce;
 
     public Long getTime() {
         return time;
@@ -26,11 +26,11 @@ public abstract class AbstractPacket implements Serializable {
         this.time = time;
     }
 
-    public String getNonce() {
+    public Integer getNonce() {
         return nonce;
     }
 
-    public void setNonce(String nonce) {
+    public void setNonce(Integer nonce) {
         this.nonce = nonce;
     }
 
