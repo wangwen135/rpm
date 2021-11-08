@@ -12,12 +12,12 @@ serverConf:
 # forwardHost 相对于服务端的目标地址
 forwardOverServer:
 - listenHost: 0.0.0.0
-  listenPort: 31080
+  listenPort: 11080
   forwardHost: 127.0.0.1
   forwardPort: 1080
 
 # 控制端口，默认56781
-ctrlPort: 56783
+ctrlPort: 56781
 
 # 其他参数
 arguments:

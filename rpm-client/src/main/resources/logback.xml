@@ -30,7 +30,7 @@
 		<appender-ref ref="FILE" />
 	</root>
 	
-	<logger name="com.wwh.rpm" level="DEBUG"/>
+	<logger name="com.wwh.rpm" level="INFO"/>
 	<logger name="rpm.msg" level="INFO" />
 
 </configuration>
