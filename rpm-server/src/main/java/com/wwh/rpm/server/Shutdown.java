@@ -42,7 +42,7 @@ public class Shutdown {
             // MsgPrintUtil.countDownPrint(3);
         } catch (Exception e) {
             e.printStackTrace();
-            MsgPrintUtil.countDownPrint(5);
+            MsgPrintUtil.countDownPrint(3);
         }
 
     }

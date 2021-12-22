@@ -26,7 +26,7 @@ public final class SocksServer {
 
         LogUtil.msgLog.info("启动 SocksServer...");
         LogUtil.msgLog.info("监听地址：{}:{}", HOST, PORT);
-
+ 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {

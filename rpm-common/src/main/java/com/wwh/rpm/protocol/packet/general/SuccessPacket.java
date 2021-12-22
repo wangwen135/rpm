@@ -14,6 +14,14 @@ public class SuccessPacket extends AbstractPacket {
 
     private String msg;
 
+    public SuccessPacket() {
+
+    }
+
+    public SuccessPacket(Integer nonce) {
+        setNonce(nonce);
+    }
+
     @Override
     public byte getType() {
         return ProtocolConstants.TYPE_SUCCESS;

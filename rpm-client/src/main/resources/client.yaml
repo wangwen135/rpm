@@ -5,7 +5,7 @@ cid: 本地测试客户端A1
 serverConf:
   host: 127.0.0.1
   port: 9999
-  sid: xdkjadfqwwefasdfasdfel123
+  sid: localServer
 
 # 经由服务端转发的配置列表
 # listenHost 本地监听地址
@@ -17,7 +17,7 @@ forwardOverServer:
   forwardPort: 1080
 
 # 控制端口，默认56781
-ctrlPort: 56781
+ctrlPort: 56788
 
 # 其他参数
 arguments:

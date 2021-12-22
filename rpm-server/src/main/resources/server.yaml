@@ -1,5 +1,5 @@
 # 服务端ID
-sid: xdkjadfqwwefasdfasdfel123
+sid: localServer
 
 # 主服务监听地址
 host: 0.0.0.0
@@ -16,7 +16,7 @@ enableCompression: false
 compressionLevel: 6
 
 # 控制端口，默认56791
-ctrlPort: 56791
+ctrlPort: 56799
 
 # 经由客户端转发的列表
 forwardOverClient:

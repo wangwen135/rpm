@@ -22,7 +22,7 @@ public class ClientTokenManager {
     private Map<String, ClientToken> cidMap = new HashMap<>();
     private Map<String, ClientToken> tokenMap = new HashMap<>();
 
-    private boolean kickoutModel = false;
+    private boolean kickoutModel = true;
 
     public void regist(String cid, String token, Channel channel) {
         if (cid == null || token == null || channel == null) {

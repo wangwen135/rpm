@@ -9,6 +9,14 @@ public class FailPacket extends AbstractPacket {
 
     private String msg;
 
+    public FailPacket() {
+
+    }
+
+    public FailPacket(String msg) {
+        this.msg = msg;
+    }
+
     @Override
     public byte getType() {
         return ProtocolConstants.TYPE_FAIL;

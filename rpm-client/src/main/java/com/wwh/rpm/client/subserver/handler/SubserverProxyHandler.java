@@ -1,5 +1,7 @@
 package com.wwh.rpm.client.subserver.handler;
 
+import java.util.Random;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,8 @@ public class SubserverProxyHandler extends ChannelInboundHandlerAdapter {
         ForwardCommandPacket fcp = new ForwardCommandPacket();
         fcp.setHost(host);
         fcp.setPort(port);
+        // 增加随机数消除特征
+        fcp.setNonce(new Random().nextInt());
 
         toServerChannel = cp.getCleanConnection2ServerSync(fcp);
 

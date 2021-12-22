@@ -8,6 +8,7 @@ import static com.wwh.rpm.protocol.ProtocolConstants.AUTH_RANDOM_NUMBER_INCREMEN
 import static com.wwh.rpm.protocol.ProtocolConstants.AUTH_RANDOM_NUMBER_MAX;
 import static com.wwh.rpm.protocol.ProtocolConstants.AUTH_RANDOM_NUMBER_MIN;
 
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +23,7 @@ import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.protocol.packet.auth.AuthPacket;
 import com.wwh.rpm.protocol.packet.auth.RegistPacket;
 import com.wwh.rpm.protocol.packet.auth.TokenPacket;
+import com.wwh.rpm.protocol.packet.general.FailPacket;
 import com.wwh.rpm.protocol.packet.general.SuccessPacket;
 import com.wwh.rpm.protocol.security.RandomNumberCodec;
 import com.wwh.rpm.protocol.security.SimpleEncryptionDecoder;
@@ -88,6 +90,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
         if (StringUtils.isBlank(cid)) {
             throw new RPMException("客户端cid不能为空");
         }
+        // 校验CID
 
         random = RandomUtils.nextInt(AUTH_RANDOM_NUMBER_MIN, AUTH_RANDOM_NUMBER_MAX);
         String sid = masterServer.getConfig().getSid();
@@ -133,6 +136,8 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
             configCommunication(ctx);
         } else {
+            FailPacket fp = new FailPacket("客户端认证失败！");
+            ctx.writeAndFlush(fp);
             throw new RPMException("随机数不正确，客户端认证失败！");
         }
     }
@@ -144,7 +149,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
         // 验证token，失败直接关闭连接
         cid = masterServer.validateToken(token);
         // 通知客户端认证成功
-        ctx.writeAndFlush(new SuccessPacket());
+        ctx.writeAndFlush(new SuccessPacket(new Random().nextInt()));
 
         setAttribute(ctx);
         // 移除handler
@@ -181,14 +186,11 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (registered) {
-            masterServer.unregistClientByToken(token);
-            ctx.fireExceptionCaught(cause);
-            return;
-        }
-
         logger.warn("【主服务】客户端认证异常：{}，关闭连接：{}", cause.getMessage(), ctx.channel().remoteAddress());
         logger.debug("错误信息：", cause);
+        if (registered) {
+            masterServer.unregistClientByToken(token);
+        }
 
         ctx.close();
     }
@@ -202,11 +204,11 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        super.channelInactive(ctx);
         logger.info("【主服务】连接:{} 断开了", ctx.channel());
         if (registered) {
             masterServer.unregistClientByToken(token);
         }
+        super.channelInactive(ctx);
     }
 
     @Override
