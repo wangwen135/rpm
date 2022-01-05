@@ -1,6 +1,16 @@
 package com.wwh.rpm.client.config.pojo;
 
-public class ForwardOverServer {
+import org.apache.commons.lang3.StringUtils;
+
+import com.wwh.rpm.common.config.pojo.AbstractConfig;
+import com.wwh.rpm.common.exception.ConfigException;
+
+/**
+ * 经由服务端转发的配置
+ * 
+ * @author wangwh
+ */
+public class ForwardOverServer extends AbstractConfig {
 
     private String listenHost;
     private int listenPort;
@@ -46,6 +56,7 @@ public class ForwardOverServer {
                 + forwardHost + ", forwardPort=" + forwardPort + "]";
     }
 
+    @Override
     public String toPrettyString() {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append(" *  本地监听  listenHost:listenPort = ").append(listenHost).append(":").append(listenPort)
@@ -54,6 +65,25 @@ public class ForwardOverServer {
                 .append("\n");
 
         return sbuf.toString();
+    }
+
+    @Override
+    public void check() throws ConfigException {
+        if (StringUtils.isBlank(getListenHost())) {
+            throw new ConfigException("转发配置【forwardOverServer:listenHost】不能空");
+        }
+
+        if (getListenPort() < 1 || getListenPort() > 65535) {
+            throw new ConfigException("转发配置【forwardOverServer:listenPort】端口错误");
+        }
+
+        if (StringUtils.isBlank(getForwardHost())) {
+            throw new ConfigException("转发配置【forwardOverServer:forwardHost】不能空");
+        }
+
+        if (getForwardPort() < 1 || getForwardPort() > 65535) {
+            throw new ConfigException("转发配置【forwardOverServer:forwardPort】端口错误");
+        }
     }
 
 }

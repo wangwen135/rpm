@@ -95,9 +95,18 @@ public class Constants {
      */
     public static final int COMPRESSION_LEVEL_MAX = 9;
 
-    public static final int min_workgroup_size = 8;
+    /**
+     * 默认连接池大小
+     */
+    public static final int DEFAULT_POOL_SIZE = 6;
 
+    /**
+     * 最大连接池大小
+     */
+    public static final int MAX_POOL_SIZE = 30;
     // -----------------------------------
+
+    public static final int min_workgroup_size = 8;
 
     public static final int DEFAULT_WEIGHT = 100;
     public static final int DEFAULT_THREADS = 200;

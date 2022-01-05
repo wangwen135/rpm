@@ -15,11 +15,6 @@ public class TokenPacket extends AbstractPacket {
 
     private String token;
 
-    /**
-     * 通讯配置
-     */
-    private String commConfig;
-
     @Override
     public byte getType() {
         return ProtocolConstants.TYPE_TOKEN;
@@ -31,14 +26,6 @@ public class TokenPacket extends AbstractPacket {
 
     public void setToken(String token) {
         this.token = token;
-    }
-
-    public String getCommConfig() {
-        return commConfig;
-    }
-
-    public void setCommConfig(String commConfig) {
-        this.commConfig = commConfig;
     }
 
 }

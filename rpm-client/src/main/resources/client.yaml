@@ -1,11 +1,29 @@
+
 # 客户端ID
 cid: 本地测试客户端A1
+
+# 控制端口，默认56781
+ctrlPort: 56788
 
 # 服务端配置
 serverConf:
   host: 127.0.0.1
   port: 9999
   sid: localServer
+
+# 通信配置
+communication: 
+  # 加密方式
+  # NONE:不加密；SIMPLE:简单加密
+  encryptType: SIMPLE
+  # 是否启用压缩
+  enableCompression: false
+  # 压缩级别 0-9
+  compressionLevel: 6
+
+#连接池配置
+pool: 
+  poolSize: 8
 
 # 经由服务端转发的配置列表
 # listenHost 本地监听地址
@@ -15,9 +33,6 @@ forwardOverServer:
   listenPort: 11080
   forwardHost: 127.0.0.1
   forwardPort: 1080
-
-# 控制端口，默认56781
-ctrlPort: 56788
 
 # 其他参数
 arguments:

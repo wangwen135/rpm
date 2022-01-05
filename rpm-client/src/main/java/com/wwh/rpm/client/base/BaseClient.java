@@ -10,10 +10,10 @@ import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.ClientStarter;
 import com.wwh.rpm.client.base.handler.BaseHandlerInitializer;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
-import com.wwh.rpm.client.config.pojo.ServerConf;
+import com.wwh.rpm.client.config.pojo.ServerConfig;
 import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.common.Constants;
-import com.wwh.rpm.common.config.pojo.CommConfig;
+import com.wwh.rpm.common.config.pojo.CommunicationConfig;
 import com.wwh.rpm.common.exception.RPMException;
 
 import io.netty.bootstrap.Bootstrap;
@@ -52,7 +52,7 @@ public class BaseClient {
     /**
      * 通讯配置
      */
-    private CommConfig commConfig;
+    private CommunicationConfig commConfig;
 
     private Object lock = new Object();
 
@@ -96,11 +96,12 @@ public class BaseClient {
             logger.error("客户端正在运行！");
             return;
         }
-        ServerConf serverConf = clientManager.getConfig().getServerConf();
+        ServerConfig serverConf = clientManager.getConfig().getServerConf();
 
         Bootstrap b = new Bootstrap();
         b.group(workerGroup).channel(NioSocketChannel.class);
         b.option(ChannelOption.TCP_NODELAY, true);
+        b.option(ChannelOption.SO_KEEPALIVE, true);
         b.handler(new BaseHandlerInitializer(this));
 
         ChannelFuture f = b.connect(serverConf.getHost(), serverConf.getPort()).sync();
@@ -160,11 +161,11 @@ public class BaseClient {
         return clientManager.getConnectionProvider();
     }
 
-    public CommConfig getCommConfig() {
+    public CommunicationConfig getCommConfig() {
         return commConfig;
     }
 
-    public void setCommConfig(CommConfig commConfig) {
+    public void setCommConfig(CommunicationConfig commConfig) {
         this.commConfig = commConfig;
     }
 

@@ -2,6 +2,7 @@ package com.wwh.rpm.common.config.pojo;
 
 import com.wwh.rpm.common.Constants;
 import com.wwh.rpm.common.enums.EncryptTypeEnum;
+import com.wwh.rpm.common.exception.ConfigException;
 
 /**
  * 通讯配置
@@ -9,7 +10,7 @@ import com.wwh.rpm.common.enums.EncryptTypeEnum;
  * @author wangwh
  * @date 2021-3-1
  */
-public class CommConfig {
+public class CommunicationConfig extends AbstractConfig {
 
     private static final String SPLIT = ":";
     /**
@@ -57,8 +58,25 @@ public class CommConfig {
                 + ", compressionLevel=" + compressionLevel + "]";
     }
 
+    @Override
     public String toPrettyString() {
-        return "加密方式=" + encryptType + ", 启用压缩=" + enableCompression + ", 压缩级别=" + compressionLevel;
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append("\n#通信配置：\n");
+        sbuf.append("  加密方式   encryptType = ").append(getEncryptType()).append("\n");
+        sbuf.append("  是否压缩   enableCompression = ").append(getEnableCompression()).append("\n");
+        sbuf.append("  压缩级别   compressionLevel = ").append(getCompressionLevel()).append("\n");
+
+        return sbuf.toString();
+    }
+
+    @Override
+    public void check() throws ConfigException {
+
+        Integer compressionLevel = getCompressionLevel();
+        if (compressionLevel < Constants.COMPRESSION_LEVEL_MIN || compressionLevel > Constants.COMPRESSION_LEVEL_MAX) {
+            throw new ConfigException("压缩级别【compressionLevel】配置错误，只支持 0-9");
+        }
+
     }
 
     /**
@@ -82,8 +100,8 @@ public class CommConfig {
      * @param str
      * @return
      */
-    public static CommConfig decode(String str) {
-        CommConfig cc = new CommConfig();
+    public static CommunicationConfig decode(String str) {
+        CommunicationConfig cc = new CommunicationConfig();
         String[] s = str.split(SPLIT);
         cc.setEncryptType(EncryptTypeEnum.getEnumByCode(Integer.valueOf(s[0])));
         cc.setEnableCompression("T".equals(s[1]));

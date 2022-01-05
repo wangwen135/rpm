@@ -11,7 +11,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
-import com.wwh.rpm.client.config.pojo.ServerConf;
+import com.wwh.rpm.client.config.pojo.ServerConfig;
 
 public class YamlWriterTest {
 
@@ -19,7 +19,7 @@ public class YamlWriterTest {
         ClientConfig cc = new ClientConfig();
 
         cc.setCid("ssssddddff");
-        ServerConf serverConf = new ServerConf();
+        ServerConfig serverConf = new ServerConfig();
         serverConf.setHost("192.168.1.1");
         serverConf.setPort(9900);
         serverConf.setSid("xxdfsdfsdf");

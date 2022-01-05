@@ -3,9 +3,9 @@ package com.wwh.rpm.server.config.pojo;
 import java.util.List;
 
 import com.wwh.rpm.common.config.pojo.Arguments;
-import com.wwh.rpm.common.config.pojo.CommConfig;
+import com.wwh.rpm.common.config.pojo.CommunicationConfig;
 
-public class ServerConfig extends CommConfig {
+public class ServerConfig extends CommunicationConfig {
 
     /**
      * 服务ID
@@ -87,8 +87,8 @@ public class ServerConfig extends CommConfig {
      * 
      * @return
      */
-    public CommConfig getCommConfig() {
-        CommConfig config = new CommConfig();
+    public CommunicationConfig getCommConfig() {
+        CommunicationConfig config = new CommunicationConfig();
         config.setEncryptType(getEncryptType());
         config.setEnableCompression(getEnableCompression());
         config.setCompressionLevel(getCompressionLevel());
@@ -110,8 +110,8 @@ public class ServerConfig extends CommConfig {
         sbuf.append("服务器id   sid = ").append(sid).append("\n");
         sbuf.append("监听地址   host = ").append(host).append("\n");
         sbuf.append("监听端口   port = ").append(port).append("\n");
-        sbuf.append("加密方式   encryptType = ").append(getEncryptType()).append("\n");
         sbuf.append("控制端口   ctrlPort = ").append(ctrlPort).append("\n");
+        sbuf.append("加密方式   encryptType = ").append(getEncryptType()).append("\n");
         sbuf.append("是否压缩   enableCompression = ").append(getEnableCompression()).append("\n");
         sbuf.append("压缩级别   compressionLevel = ").append(getCompressionLevel()).append("\n");
 

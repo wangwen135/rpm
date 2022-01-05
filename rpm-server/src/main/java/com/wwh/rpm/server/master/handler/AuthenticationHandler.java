@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.common.config.pojo.CommConfig;
+import com.wwh.rpm.common.config.pojo.CommunicationConfig;
 import com.wwh.rpm.common.enums.EncryptTypeEnum;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.protocol.packet.auth.AuthPacket;
@@ -117,7 +117,7 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
 
             TokenPacket tokenPacket = new TokenPacket();
             // 将通讯配置返回给客户端
-            CommConfig commConfig = masterServer.getConfig().getCommConfig();
+            CommunicationConfig commConfig = masterServer.getConfig().getCommConfig();
             tokenPacket.setCommConfig(commConfig.code());
             tokenPacket.setToken(token);
             ctx.writeAndFlush(tokenPacket);

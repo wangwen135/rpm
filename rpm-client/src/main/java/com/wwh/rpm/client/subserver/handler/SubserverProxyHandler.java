@@ -48,6 +48,7 @@ public class SubserverProxyHandler extends ChannelInboundHandlerAdapter {
         // 增加随机数消除特征
         fcp.setNonce(new Random().nextInt());
 
+        //同步问题
         toServerChannel = cp.getCleanConnection2ServerSync(fcp);
 
         // 将两个通道关联起来

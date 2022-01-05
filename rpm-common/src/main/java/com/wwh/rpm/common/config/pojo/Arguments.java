@@ -1,6 +1,8 @@
 package com.wwh.rpm.common.config.pojo;
 
-public class Arguments {
+import com.wwh.rpm.common.exception.ConfigException;
+
+public class Arguments extends AbstractConfig {
 
     private boolean enableNettyLog;
     private String nettyLogLevel;
@@ -26,12 +28,19 @@ public class Arguments {
         return "Arguments [enableNettyLog=" + enableNettyLog + ", nettyLogLevel=" + nettyLogLevel + "]";
     }
 
+    @Override
     public String toPrettyString() {
         StringBuffer sbuf = new StringBuffer();
         if (enableNettyLog) {
-            sbuf.append(" enableNettyLog = ").append(enableNettyLog).append("\n");
-            sbuf.append(" nettyLogLevel = ").append(nettyLogLevel).append("\n");
+            sbuf.append("\n#其他配置：\n");
+            sbuf.append("  enableNettyLog = ").append(enableNettyLog).append("\n");
+            sbuf.append("  nettyLogLevel = ").append(nettyLogLevel).append("\n");
         }
         return sbuf.toString();
+    }
+
+    @Override
+    public void check() throws ConfigException {
+
     }
 }

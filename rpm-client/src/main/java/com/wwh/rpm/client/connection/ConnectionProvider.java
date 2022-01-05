@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.ClientManager;
-import com.wwh.rpm.client.config.pojo.ServerConf;
+import com.wwh.rpm.client.config.pojo.ServerConfig;
 import com.wwh.rpm.client.connection.handler.ToServerHandlerInitializer;
 import com.wwh.rpm.client.connection.handler.ToTargetHandlerInitializer;
 import com.wwh.rpm.protocol.packet.AbstractPacket;
@@ -112,7 +112,7 @@ public class ConnectionProvider {
     public FetchChannelWarp getCleanConnection2Server(AbstractPacket packet) {
         final FetchChannelWarp warp = new FetchChannelWarp();
 
-        ServerConf serverConf = clientManager.getConfig().getServerConf();
+        ServerConfig serverConf = clientManager.getConfig().getServerConf();
         EventLoopGroup workerGroup = clientManager.getWorkerGroup();
 
         Bootstrap b = new Bootstrap();

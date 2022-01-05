@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.client.base.BaseClient;
 import com.wwh.rpm.client.connection.FetchChannelWarp;
 import com.wwh.rpm.client.connection.event.RegistSuccessEvent;
-import com.wwh.rpm.common.config.pojo.CommConfig;
+import com.wwh.rpm.common.config.pojo.CommunicationConfig;
 import com.wwh.rpm.common.enums.EncryptTypeEnum;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.protocol.packet.auth.TokenPacket;
@@ -71,7 +71,7 @@ public class RegistClientHandler extends ChannelInboundHandlerAdapter {
 
     private void configCommunication(ChannelHandlerContext ctx) {
         ChannelPipeline pipeline = ctx.pipeline();
-        CommConfig commConfig = baseClient.getCommConfig();
+        CommunicationConfig commConfig = baseClient.getCommConfig();
         boolean compression = commConfig.getEnableCompression();
         // 是否需要进行压缩
         if (compression) {

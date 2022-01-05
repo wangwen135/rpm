@@ -35,10 +35,23 @@ public class ClientManager implements Closeer {
 
     private EventLoopGroup workerGroup;
 
+    
+    //改成启动连接池
+    
+    //再启动子服务
+    
+    
+    
     public ClientManager(ClientConfig config) {
         this.config = config;
+        
+        
         baseClient = new BaseClient(this);
         subserverManager = new SubserverManager(this);
+        
+        
+        //这两个玩意好像不要了吧
+        
         connectionProvider = new ConnectionProvider(this);
         // 创建线程池
         workerGroup = new NioEventLoopGroup();
