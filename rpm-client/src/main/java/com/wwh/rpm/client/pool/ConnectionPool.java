@@ -44,6 +44,8 @@ public class ConnectionPool {
      */
     private RegisterConnection regConnection;
 
+    // 弄两个集合，一个预连接，一个已连接
+
     /**
      * 通信连接
      */
@@ -114,16 +116,20 @@ public class ConnectionPool {
      */
     private void initCommonConnection() {
         for (int i = 0; i < getPoolSize() - 1; i++) {
-            int id = idCreater.incrementAndGet();
-            CommonConnection connection = new CommonConnection(this, id);
-            commConnectionMap.put(id, connection);
-            try {
-                connection.start();
-            } catch (Exception e) {
-                logger.error("启动通信连接异常", e);
-                connection.shutdown();
-                commConnectionMap.remove(id);
-            }
+            createConnection();
+        }
+    }
+
+    public void createConnection() {
+        int id = idCreater.incrementAndGet();
+        CommonConnection connection = new CommonConnection(this, id);
+        commConnectionMap.put(id, connection);
+        try {
+            connection.start();
+        } catch (Exception e) {
+            logger.error("启动通信连接异常", e);
+            connection.shutdown();
+            commConnectionMap.remove(id);
         }
     }
 
@@ -147,6 +153,29 @@ public class ConnectionPool {
     }
 
     /**
+     * 总共获取过多少次连接
+     * 
+     * @return
+     */
+    public long totalObtained() {
+        return counter.get();
+    }
+
+    /**
+     * 获取当前池大小（当前池中连接数）
+     * 
+     * @return
+     */
+    public int currentPoolSize() {
+        return channelMap.size();
+    }
+
+    // 获取RpmConnection 连接算了
+    // 获取连接时进行检查，异常的连接就移除掉
+
+    // 连接数不够了就新建连接
+
+    /**
      * 获取连接
      * 
      * @return
@@ -157,7 +186,7 @@ public class ConnectionPool {
         return null;
     }
 
-    // 连接池管理线程
+    // 连接池管理线程 这个就不要了，每次获取的时候校验一下
 
     // 关闭连接池
 

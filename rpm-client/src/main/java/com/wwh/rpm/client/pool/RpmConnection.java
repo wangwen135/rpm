@@ -1,5 +1,7 @@
 package com.wwh.rpm.client.pool;
 
+import java.util.Date;
+
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 
 import io.netty.channel.Channel;
@@ -51,4 +53,25 @@ public interface RpmConnection {
      * @return
      */
     Channel getChannel();
+
+    /**
+     * 连接已经建立
+     * 
+     * @return
+     */
+    boolean alreadyEstablished();
+
+    /**
+     * 获取连接建立时间
+     * 
+     * @return
+     */
+    Date getEstablishTime();
+
+    /**
+     * 检查连接
+     * 
+     * @return
+     */
+    boolean checkConnection();
 }
