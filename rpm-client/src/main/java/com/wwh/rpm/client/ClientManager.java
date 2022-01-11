@@ -1,6 +1,7 @@
 package com.wwh.rpm.client;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,23 +36,33 @@ public class ClientManager implements Closeer {
 
     private EventLoopGroup workerGroup;
 
-    
-    //改成启动连接池
-    
-    //再启动子服务
-    
-    
-    
+    /**
+     * 全局ID生成器<br>
+     * 负责全部子连接的ID生成
+     */
+    private AtomicLong idGenerator = new AtomicLong(0);
+
+    /**
+     * 获取ID
+     * 
+     * @return
+     */
+    public long getNextId() {
+        return idGenerator.incrementAndGet();
+    }
+
+    // 改成启动连接池
+
+    // 再启动子服务
+
     public ClientManager(ClientConfig config) {
         this.config = config;
-        
-        
+
         baseClient = new BaseClient(this);
         subserverManager = new SubserverManager(this);
-        
-        
-        //这两个玩意好像不要了吧
-        
+
+        // 这两个玩意好像不要了吧
+
         connectionProvider = new ConnectionProvider(this);
         // 创建线程池
         workerGroup = new NioEventLoopGroup();

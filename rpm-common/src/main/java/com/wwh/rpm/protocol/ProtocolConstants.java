@@ -69,6 +69,11 @@ public class ProtocolConstants {
     public static final byte TYPE_FORWARD_COMMAND_RESULT = 32;
 
     /**
+     * 关闭连接
+     */
+    public static final byte TYPE_CLOSE_COMMAND = 33;
+
+    /**
      * 传输数据
      */
     public static final byte TYPE_TRANSPORT = 40;
@@ -77,7 +82,6 @@ public class ProtocolConstants {
      * 关闭指令
      */
     public static final byte TYPE_SHUTDOWN = 100;
-
 
     /**
      * 授权随机数最小值

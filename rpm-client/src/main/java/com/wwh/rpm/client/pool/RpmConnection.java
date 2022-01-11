@@ -27,11 +27,11 @@ public interface RpmConnection {
     void shutdown();
 
     /**
-     * 获取ID
+     * 获取连接的ID
      * 
      * @return
      */
-    Integer getId();
+    Integer getConnectionId();
 
     /**
      * 获取token
@@ -74,4 +74,12 @@ public interface RpmConnection {
      * @return
      */
     boolean checkConnection();
+
+    /**
+     * 写数据到服务端
+     * 
+     * @param id
+     * @param data
+     */
+    void writeData2Server(long id, byte[] data);
 }
