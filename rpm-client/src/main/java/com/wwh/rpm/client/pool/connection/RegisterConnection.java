@@ -158,7 +158,7 @@ public class RegisterConnection implements RpmConnection {
     }
 
     @Override
-    public Integer getId() {
+    public Integer getConnectionId() {
         return id;
     }
 

@@ -1,6 +1,9 @@
 package com.wwh.rpm.client.pool;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,8 +17,10 @@ import com.wwh.rpm.client.config.pojo.ServerConfig;
 import com.wwh.rpm.client.pool.connection.CommonConnection;
 import com.wwh.rpm.client.pool.connection.RegisterConnection;
 import com.wwh.rpm.common.config.pojo.CommunicationConfig;
+import com.wwh.rpm.common.exception.RPMException;
 
-import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * 连接池<br>
@@ -44,14 +49,15 @@ public class ConnectionPool {
      */
     private RegisterConnection regConnection;
 
-    // 弄两个集合，一个预连接，一个已连接
+    /**
+     * 预连接
+     */
+    private Map<Integer, RpmConnection> preconnectMap = new ConcurrentHashMap<>();
 
     /**
-     * 通信连接
+     * 已连接
      */
-    private Map<Integer, RpmConnection> commConnectionMap = new ConcurrentHashMap<>();
-
-    private Map<Integer, Channel> channelMap = new ConcurrentHashMap<>();
+    private Map<Integer, RpmConnection> connectedMap = new ConcurrentHashMap<>();
 
     /**
      * 服务端返回的token
@@ -60,9 +66,18 @@ public class ConnectionPool {
 
     private AtomicBoolean isRunning = new AtomicBoolean(false);
 
+    private boolean startingSuccess = false;
+    /**
+     * 工作线程
+     */
+    private EventLoopGroup workerGroup;
+
     public ConnectionPool(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
+    }
 
+    public EventLoopGroup getWorkerGroup() {
+        return workerGroup;
     }
 
     public boolean isRunning() {
@@ -74,8 +89,11 @@ public class ConnectionPool {
     }
 
     /**
-     * 启动连接池<br>
+     * <pre>
+     * 启动连接池
      * 阻塞，直到获取到token
+     * 并启动剩余连接
+     * </pre>
      * 
      * @throws Exception
      */
@@ -84,27 +102,49 @@ public class ConnectionPool {
             logger.error("连接池已经启动！");
             return;
         }
+        workerGroup = new NioEventLoopGroup();
 
         logger.debug("启动连接池...");
-        // --- 先启动注册连接，一个客户端只能注册一次，避免有多个客户端ID相同时注册的对不上
-        regConnection = new RegisterConnection(this, 0);
-        regConnection.start();
-        // 主的也保存一下
-        commConnectionMap.put(0, regConnection);
+        // 一个客户端只能注册一次，避免有多个客户端ID相同时注册的对不上
 
-        // --- 获取到token，剩下的用token注册
+        int id = idCreater.getAndIncrement();
+        regConnection = new RegisterConnection(this, id);
+        try {
+            regConnection.start();
+        } finally {
+            workerGroup.shutdownGracefully();
+        }
+        //
+        preconnectMap.put(id, regConnection);
+
+        // 获取到token，剩下的用token注册
         token = regConnection.waitToken();
         logger.debug("获取到token：{}", token);
+        startingSuccess = true;
 
-        // --- 再启动剩余的
+        // 再启动剩余的
         initCommonConnection();
     }
 
+    /**
+     * 关闭连接池
+     */
     public void shutdownPool() {
         if (!isRunning()) {
             logger.warn("连接池没有启动");
             return;
         }
+
+        logger.debug("关闭连接池...");
+
+        logger.debug("关闭池中子连接，共：{}个", preconnectMap.size());
+        preconnectMap.values().forEach(conn -> {
+            conn.shutdown();
+        });
+
+        logger.debug("关闭工作线程池");
+        workerGroup.shutdownGracefully();
+
     }
 
     public int getPoolSize() {
@@ -112,10 +152,50 @@ public class ConnectionPool {
     }
 
     /**
+     * <pre>
+     * 获取连接
+     * 连接不够时会新建连接
+     * </pre>
+     * 
+     * @return
+     */
+    public RpmConnection getConnection() {
+        if (!isRunning()) {
+            logger.warn("连接池没有启动");
+            return null;
+        }
+        if (!startingSuccess) {
+            logger.warn("连接池还未启动成功");
+            return null;
+        }
+
+        repairPool();
+
+        if (connectedMap.size() == 0) {
+            throw new RPMException("连接池中无可用连接");
+        }
+
+        long index = counter.incrementAndGet();
+
+        // 取模
+        RpmConnection rpmConn = connectedMap.values().stream().skip(index % connectedMap.size()).findFirst()
+                .orElseThrow(() -> new RPMException("没有可用连接"));
+
+        // TODO 好像没有必要
+        if (!rpmConn.isOk()) {
+            rpmConn.shutdown();
+            return null;
+        }
+
+        return rpmConn;
+
+    }
+
+    /**
      * 启动普通连接
      */
     private void initCommonConnection() {
-        for (int i = 0; i < getPoolSize() - 1; i++) {
+        for (int i = 1; i < getPoolSize(); i++) {
             createConnection();
         }
     }
@@ -123,33 +203,41 @@ public class ConnectionPool {
     public void createConnection() {
         int id = idCreater.incrementAndGet();
         CommonConnection connection = new CommonConnection(this, id);
-        commConnectionMap.put(id, connection);
+        preconnectMap.put(id, connection);
         try {
             connection.start();
         } catch (Exception e) {
             logger.error("启动通信连接异常", e);
             connection.shutdown();
-            commConnectionMap.remove(id);
+            preconnectMap.remove(id);
+        }
+    }
+
+    private void repairPool() {
+        if (preconnectMap.size() < getPoolSize()) {
+            createConnection();
         }
     }
 
     /**
-     * 注册通道
+     * 连接成功
      * 
-     * @param channel
+     * @param id
+     * @param connection
      */
-    public void registerChannel(Integer id, Channel channel) {
-        channelMap.put(id, channel);
+    public void connectionSuccessful(Integer id, RpmConnection connection) {
+        preconnectMap.put(id, connection);
+        connectedMap.put(id, connection);
     }
 
     /**
-     * 取消注册
+     * 连接失败
      * 
      * @param id
      */
-    public void unregisterChannel(Integer id) {
-        commConnectionMap.remove(id);
-        channelMap.remove(id);
+    public void connectionFail(Integer id) {
+        preconnectMap.remove(id);
+        connectedMap.remove(id);
     }
 
     /**
@@ -166,29 +254,18 @@ public class ConnectionPool {
      * 
      * @return
      */
-    public int currentPoolSize() {
-        return channelMap.size();
+    public int getCurrentPoolSize() {
+        return connectedMap.size();
     }
 
-    // 获取RpmConnection 连接算了
-    // 获取连接时进行检查，异常的连接就移除掉
+    public static void main(String[] args) {
+        int index = 126;
+        Collection<Integer> c = Arrays.asList(1, 2, 3, 4, 5, 6);
 
-    // 连接数不够了就新建连接
+        Optional<Integer> optional = c.stream().skip(index % c.size()).findFirst();
 
-    /**
-     * 获取连接
-     * 
-     * @return
-     */
-    public Channel getChannel() {
-        long index = counter.incrementAndGet();
-
-        return null;
+        System.out.println(optional.orElseThrow(() -> new RPMException("没有可用连接")));
     }
-
-    // 连接池管理线程 这个就不要了，每次获取的时候校验一下
-
-    // 关闭连接池
 
     public CommunicationConfig getCommunicationConfig() {
         return clientConfig.getCommunication();

@@ -14,6 +14,7 @@ import io.netty.channel.Channel;
  */
 public interface RpmConnection {
 
+
     /**
      * 启动连接
      * 
@@ -73,7 +74,7 @@ public interface RpmConnection {
      * 
      * @return
      */
-    boolean checkConnection();
+    boolean isOk();
 
     /**
      * 写数据到服务端

@@ -112,7 +112,7 @@ public class CommonConnection implements RpmConnection {
     }
 
     @Override
-    public Integer getId() {
+    public Integer getConnectionId() {
         return id;
     }
 
