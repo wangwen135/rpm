@@ -25,22 +25,22 @@ public class Constants {
     /**
      * 指定时间内没有收到心跳则关闭连接（秒）
      */
-    public static final int DEFAULT_IDLE_TIMEOUT = 100;
+    public static final int DEFAULT_IDLE_TIMEOUT = 40;
 
     /**
      * 客户端默认发送心跳的频率（秒）
      */
-    public static final int DEFAULT_HEARTBEAT = 30;
+    public static final int DEFAULT_HEARTBEAT = 10;
 
     /**
-     * 客户端等待Token返回的超时时间
+     * 客户端等待Token返回的超时时间（毫秒）
      */
-    public static final int CLIENT_WAIT_TOKEN_TIMEOUT = 5000;
+    public static final int CLIENT_WAIT_TOKEN_TIMEOUT = 15000;
 
     /**
      * 获取客户端转发通道超时时间
      */
-    public static final int ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT = 10000;
+    public static final int ACQUIRE_CLIENT_FORWARD_CHANNEL_TIMEOUT = 15000;
 
     /**
      * 异步方式（回调函数）获取客户端通道超时时间

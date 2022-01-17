@@ -101,6 +101,9 @@ public class BaseClient {
         Bootstrap b = new Bootstrap();
         b.group(workerGroup).channel(NioSocketChannel.class);
         b.option(ChannelOption.TCP_NODELAY, true);
+        b.option(ChannelOption.SO_KEEPALIVE, true);
+        b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 60000);
+        
         b.handler(new BaseHandlerInitializer(this));
 
         ChannelFuture f = b.connect(serverConf.getHost(), serverConf.getPort()).sync();
