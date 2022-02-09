@@ -108,7 +108,7 @@ public class ConnectionPool {
         }
         workerGroup = new NioEventLoopGroup();
 
-        logger.debug("启动连接池...");
+        logger.debug("启动注册连接...");
         // 一个客户端只能注册一次，避免有多个客户端ID相同时注册的对不上
 
         int id = idCreater.getAndIncrement();
@@ -127,7 +127,7 @@ public class ConnectionPool {
         logger.debug("获取到token：{}", token);
         startingSuccess = true;
 
-        // 再启动剩余的
+        logger.debug("启动剩余连接...");
         initCommonConnection();
     }
 
@@ -210,9 +210,10 @@ public class ConnectionPool {
         CommonConnection connection = new CommonConnection(this, id);
         preconnectMap.put(id, connection);
         try {
+            logger.debug("启动通信连接【{}】...", id);
             connection.start();
         } catch (Exception e) {
-            logger.error("启动通信连接异常", e);
+            logger.error("启动通信连接【{}】异常", id, e);
             connection.shutdown();
             preconnectMap.remove(id);
         }

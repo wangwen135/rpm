@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.client.base.BaseClient;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.connection.ConnectionProvider;
+import com.wwh.rpm.client.pool.BufferManager;
+import com.wwh.rpm.client.pool.ConnectionPool;
+import com.wwh.rpm.client.subconnection.SubconnectionManager;
 import com.wwh.rpm.client.subserver.SubserverManager;
 import com.wwh.rpm.ctrl.Closeer;
 
@@ -24,17 +27,23 @@ public class ClientManager implements Closeer {
     private static final Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
     private ClientConfig config;
-    private BaseClient baseClient;
+
+    private ConnectionPool connectionPool;
+
+    // private BufferManager bufferManager;
+
+    // private BaseClient baseClient;
     private SubserverManager subserverManager;
 
-    private ConnectionProvider connectionProvider;
+    private SubconnectionManager subconnectionManager;
+    // private ConnectionProvider connectionProvider;
 
     private static Object lock = new Object();
 
     // 一次性
     private AtomicBoolean isStartup = new AtomicBoolean(false);
 
-    private EventLoopGroup workerGroup;
+    // private EventLoopGroup workerGroup;
 
     /**
      * 全局ID生成器<br>
@@ -58,14 +67,12 @@ public class ClientManager implements Closeer {
     public ClientManager(ClientConfig config) {
         this.config = config;
 
-        baseClient = new BaseClient(this);
+        connectionPool = new ConnectionPool(config);
+
         subserverManager = new SubserverManager(this);
+        
+        subconnectionManager = 
 
-        // 这两个玩意好像不要了吧
-
-        connectionProvider = new ConnectionProvider(this);
-        // 创建线程池
-        workerGroup = new NioEventLoopGroup();
     }
 
     public void startClient() throws Exception {
@@ -75,11 +82,8 @@ public class ClientManager implements Closeer {
         }
 
         synchronized (lock) {
-            logger.info("启动客户端...");
-            baseClient.start();
-
-            logger.debug("等待客户端注册完成...");
-            baseClient.waitToken();
+            logger.info("启动连接池...");
+            connectionPool.startPool();
 
             logger.info("开始启动子服务...");
             subserverManager.startAll();
@@ -88,35 +92,24 @@ public class ClientManager implements Closeer {
 
     public void shutdownClient() {
         synchronized (lock) {
-            logger.info("关闭客户端...");
-            baseClient.shutdown();
+            logger.info("关闭连接池...");
+            connectionPool.shutdownPool();
 
             logger.info("关闭子服务...");
             subserverManager.stopAll();
-
-            logger.info("关闭线程池...");
-            workerGroup.shutdownGracefully();
         }
     }
 
-    public EventLoopGroup getWorkerGroup() {
-        return workerGroup;
-    }
-
     public String getToken() {
-        return baseClient.getToken();
+        return connectionPool.getToken();
     }
 
     public ClientConfig getConfig() {
         return config;
     }
 
-    public BaseClient getBaseClient() {
-        return baseClient;
-    }
-
-    public ConnectionProvider getConnectionProvider() {
-        return connectionProvider;
+    public ConnectionPool getConnectionPool() {
+        return connectionPool;
     }
 
     @Override

@@ -23,13 +23,13 @@ public class DataTransmissionHandler extends ChannelInboundHandlerAdapter {
      */
     private Long id;
 
-    // 要写入到一个固定的连接中
     private RpmConnection rpmConnection;
 
     private BufferManager bufferManager;
 
-    public DataTransmissionHandler() {
-        //连接池 和 缓冲管理器 应该在？ClientManager
+    public DataTransmissionHandler(RpmConnection rpmConnection, BufferManager bufferManager) {
+        this.rpmConnection = rpmConnection;
+        this.bufferManager = bufferManager;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.wwh.rpm.client.subconnection.handler;
 
 import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
+import com.wwh.rpm.client.pool.ConnectionPool;
 import com.wwh.rpm.common.handler.HandlerInitHelper;
 
 import io.netty.channel.ChannelInitializer;
@@ -22,6 +23,9 @@ public class ToTargetHandlerInitializer extends ChannelInitializer<SocketChannel
         ClientConfig config = clientManager.getConfig();
         // 日志
         HandlerInitHelper.initNettyLoggingHandler(pipeline, config.getArguments());
+        ConnectionPool pool = clientManager.getConnectionPool();
+
+        pipeline.addLast(new DataTransmissionHandler(pool.getConnection(), pool.getBufferManager()));
     }
 
 }
