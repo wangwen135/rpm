@@ -3,7 +3,6 @@ package com.wwh.rpm.protocol.packet.general;
 import com.wwh.rpm.protocol.ProtocolConstants;
 import com.wwh.rpm.protocol.packet.AbstractPacket;
 
-
 /**
  * 测试包
  */
@@ -18,7 +17,7 @@ public class TestPacket extends AbstractPacket {
 
     @Override
     public byte getType() {
-        return ProtocolConstants.TYPE_SUCCESS;
+        return ProtocolConstants.TYPE_TEST;
     }
 
     public byte[] getInvalidLoad() {

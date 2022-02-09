@@ -3,15 +3,17 @@ package com.wwh.rpm.client.pool.connection.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.client.base.BaseClient;
 import com.wwh.rpm.client.connection.ConnectionProvider;
 import com.wwh.rpm.client.connection.FetchChannelWarp;
 import com.wwh.rpm.client.connection.event.RegistSuccessEvent;
 import com.wwh.rpm.client.connection.handler.SendCommandWaitResultHandler;
+import com.wwh.rpm.client.pool.RpmConnection;
 import com.wwh.rpm.common.exception.RPMException;
 import com.wwh.rpm.common.handler.TransmissionHandler;
 import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
 import com.wwh.rpm.protocol.packet.command.ForwardResultPacket;
+import com.wwh.rpm.protocol.packet.transport.ClosePacket;
+import com.wwh.rpm.protocol.packet.transport.TransportPacket;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,17 +22,26 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 public class CommandHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 
-    private BaseClient baseClient;
+    private RpmConnection rpmConnection;
 
-    public CommandHandler(BaseClient baseClient) {
-        this.baseClient = baseClient;
+    public CommandHandler(RpmConnection rpmConnection) {
+        this.rpmConnection = rpmConnection;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         logger.debug("处理指令包：{}", msg);
 
-        if (msg instanceof ForwardCommandPacket) {
+        if (msg instanceof TransportPacket) {
+            // 处理传输指令
+
+            TransportPacket tp = (TransportPacket) msg;
+            transportPacketHandler(ctx, tp);
+
+        } else if (msg instanceof ClosePacket) {
+            // 关闭指令
+
+        } else if (msg instanceof ForwardCommandPacket) {
             ForwardCommandPacket fcp = (ForwardCommandPacket) msg;
             try {
                 forwardCommandHandler(ctx, fcp);
@@ -40,6 +51,20 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         } else {
             throw new RPMException("暂不支持！msg class : " + msg.getClass());
         }
+    }
+
+    private void closePacketHandler(ChannelHandlerContext ctx, ClosePacket closePacket) {
+
+    }
+
+    /**
+     * 处理传输指令
+     * 
+     * @param ctx
+     * @param transportPacket
+     */
+    private void transportPacketHandler(ChannelHandlerContext ctx, TransportPacket transportPacket) {
+        rpmConnection.getBufferManager().putBuffer(transportPacket.getId(), transportPacket.getData());
     }
 
     private void forwardCommandHandler(ChannelHandlerContext ctx, ForwardCommandPacket forwardCommand) {
@@ -124,11 +149,10 @@ public class CommandHandler extends ChannelInboundHandlerAdapter {
         toTargetChannel.read();
         toServerChannel.read();
 
-        
         System.err.println("将两个通道关联起来...");
         toTargetChannel.pipeline().read();
         toTargetChannel.pipeline().read();
-        
+
     }
 
     @Override

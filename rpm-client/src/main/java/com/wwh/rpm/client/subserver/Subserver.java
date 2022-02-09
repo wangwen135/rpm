@@ -49,7 +49,7 @@ public class Subserver {
         b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
         // 不会自动读取数据
-        b.childOption(ChannelOption.AUTO_READ, false);
+        //b.childOption(ChannelOption.AUTO_READ, false);
         b.childOption(ChannelOption.TCP_NODELAY, true);
 
         b.childHandler(new SubserverHandlerInitializer(this));

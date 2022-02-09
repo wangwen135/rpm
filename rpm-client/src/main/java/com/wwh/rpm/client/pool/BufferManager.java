@@ -1,37 +1,43 @@
 package com.wwh.rpm.client.pool;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.common.exception.RPMException;
 
 import io.netty.channel.Channel;
 
+/**
+ * 缓冲管理器
+ * 
+ * @author wangwh
+ * @date 2022-2-9
+ */
 public class BufferManager implements Runnable {
-
-    /**
-     * 这个bufferManager挂在哪个连接下
-     */
-    private RpmConnection rpmConnection;
-
-    private Thread thread;
-
-    // 服务端和客户端的连接怎么区分，是不是要在ID上加其他标记
-    // 比如说正负数
-    private Map<Long, Channel> channels = new ConcurrentHashMap<>();
-    // 缓冲数据
-    private Map<Long, Queue<byte[]>> buffers = new ConcurrentHashMap<>();
-    // 最后刷写时间
-    private Map<Long, Long> lastTime = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(BufferManager.class);
 
     private Object condition = new Object();
+    private volatile boolean runFlag = true;
+    private volatile boolean activate = true;
+    private Thread thread;
 
-    public BufferManager(RpmConnection rpmConnection) {
-        this.rpmConnection = rpmConnection;
-        thread = new Thread(this);
+    // 正向连接用正数，反向连接用负数
+    private Map<Long, Channel> channels = new ConcurrentHashMap<>();
+
+    private Map<Long, Queue<byte[]>> buffers = new ConcurrentHashMap<>();
+
+    private Map<Long, Long> lastOutputTime = new ConcurrentHashMap<>();
+
+    private Map<Long, Long> lastReceiveTime = new ConcurrentHashMap<>();
+
+    public BufferManager() {
+        thread = new Thread(this, "BufferManager");
         thread.setDaemon(true);
         thread.start();
     }
@@ -42,38 +48,120 @@ public class BufferManager implements Runnable {
      * @param id
      * @param channel
      */
-    public void register(Long id, Channel channel) {
+    public void registerSubChannel(Long id, Channel channel) {
         if (channels.containsKey(id)) {
             throw new RPMException("重复注册，id=" + id);
         }
         channels.put(id, channel);
-        // 初始化队列
-        Queue<byte[]> queue = new ConcurrentLinkedQueue<>();
-        buffers.putIfAbsent(id, queue);
-        // 更新最后时间
-        lastTime.putIfAbsent(id, System.currentTimeMillis());
+
+        lastOutputTime.put(id, System.currentTimeMillis());
+
+        activate();
     }
 
     public void unregister(Long id) {
+        Channel channel = channels.remove(id);
+        Queue<byte[]> queue = buffers.remove(id);
+        if (channel != null && queue != null && queue.size() > 0) {
+            byte[] data;
+            while ((data = queue.poll()) != null) {
+                channel.write(data);
+            }
+            channel.flush();
+        }
 
+        lastOutputTime.remove(id);
+        lastReceiveTime.remove(id);
     }
 
     public void putBuffer(long id, byte[] buffer) {
-        // 还应该记录时间，长期没有写出去的数据，线程应该将其销毁
 
+        Queue<byte[]> queue = buffers.getOrDefault(id, new ConcurrentLinkedQueue<>());
+        queue.add(buffer);
+        lastReceiveTime.put(id, System.currentTimeMillis());
+
+        activate();
     }
 
     /**
      * 关闭并清理
      */
-    private void close() {
+    public void close() {
+        // 关闭线程
+        runFlag = false;
+        activate();
+        // 反注册
+        for (Long id : channels.keySet()) {
+            unregister(id);
+        }
+    }
 
+    private void activate() {
+        activate = true;
+        synchronized (condition) {
+            condition.notify();
+        }
     }
 
     @Override
     public void run() {
-        // 循环检测，并将数据刷新到目标channel中
+        logger.debug("缓冲管理器内部线程启动");
 
+        while (runFlag) {
+            if (!activate) {
+                synchronized (condition) {
+                    try {
+                        condition.wait(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            activate = false;
+
+            // 刷写数据
+            flushData();
+            // 清理异常数据
+            clearErrorData();
+
+        }
+
+        logger.debug("缓冲管理器内部线程停止");
+    }
+
+    private void flushData() {
+        for (Map.Entry<Long, Channel> e : channels.entrySet()) {
+            Long id = e.getKey();
+            Channel channel = e.getValue();
+
+            Queue<byte[]> queue = buffers.get(id);
+            if (queue != null && queue.size() > 0) {
+                byte[] data;
+                while ((data = queue.poll()) != null) {
+                    channel.write(data);
+                }
+                channel.flush();
+                lastOutputTime.put(id, System.currentTimeMillis());
+            }
+        }
+    }
+
+    private static final long deathTime = 30 * 60 * 1000;// 30分钟没有收发任何数据，就认为失效
+
+    private void clearErrorData() {
+        long timeLine = System.currentTimeMillis() - deathTime;
+
+        Set<Long> idSet = lastOutputTime.keySet();
+        idSet.addAll(lastReceiveTime.keySet());
+
+        for (Long id : idSet) {
+            Long outputTime = lastOutputTime.get(id);
+            Long receiveTime = lastReceiveTime.get(id);
+
+            if ((outputTime == null || outputTime < timeLine) && (receiveTime == null || receiveTime < timeLine)) {
+                unregister(id);
+            }
+        }
     }
 
 }

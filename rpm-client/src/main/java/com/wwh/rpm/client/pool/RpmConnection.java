@@ -3,6 +3,8 @@ package com.wwh.rpm.client.pool;
 import java.util.Date;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
+import com.wwh.rpm.protocol.packet.transport.ClosePacket;
+import com.wwh.rpm.protocol.packet.transport.TransportPacket;
 
 import io.netty.channel.Channel;
 
@@ -13,7 +15,6 @@ import io.netty.channel.Channel;
  * @date 2022-1-5
  */
 public interface RpmConnection {
-
 
     /**
      * 启动连接
@@ -26,6 +27,13 @@ public interface RpmConnection {
      * 关闭连接
      */
     void shutdown();
+
+    /**
+     * 获取连接池
+     * 
+     * @return
+     */
+    ConnectionPool getConnectionPool();
 
     /**
      * 获取连接的ID
@@ -60,7 +68,13 @@ public interface RpmConnection {
      * 
      * @return
      */
-    boolean alreadyEstablished();
+    default boolean alreadyEstablished() {
+        Channel channel = getChannel();
+        if (channel != null) {
+            return channel.isActive();
+        }
+        return false;
+    }
 
     /**
      * 获取连接建立时间
@@ -74,7 +88,15 @@ public interface RpmConnection {
      * 
      * @return
      */
-    boolean isOk();
+    default boolean isOk() {
+
+        Channel channel = getChannel();
+        if (channel != null) {
+            return channel.isActive();
+        }
+        return false;
+
+    }
 
     /**
      * 写数据到服务端
@@ -82,5 +104,27 @@ public interface RpmConnection {
      * @param id
      * @param data
      */
-    void writeData2Server(long id, byte[] data);
+    default void writeData2Server(long id, byte[] data) {
+        TransportPacket tPacket = new TransportPacket(id, data);
+        getChannel().writeAndFlush(tPacket);
+    }
+
+    /**
+     * 关闭远程子连接
+     * 
+     * @param id
+     */
+    default void closeRemoteSubChannel(long id) {
+        ClosePacket cPacket = new ClosePacket(id);
+        getChannel().writeAndFlush(cPacket);
+    }
+
+    /**
+     * 获取缓冲管理器
+     * 
+     * @return
+     */
+    default BufferManager getBufferManager() {
+        return getConnectionPool().getBufferManager();
+    }
 }

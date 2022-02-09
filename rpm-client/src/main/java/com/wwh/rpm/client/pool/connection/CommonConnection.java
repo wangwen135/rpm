@@ -1,5 +1,7 @@
 package com.wwh.rpm.client.pool.connection;
 
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**
@@ -32,14 +33,20 @@ public class CommonConnection implements RpmConnection {
 
     private Integer id;
 
-    private EventLoopGroup workerGroup;
     private Channel channel;
 
     private volatile boolean shutdown = false;
 
+    private Date establishTime;
+
     public CommonConnection(ConnectionPool connectionPool, Integer id) {
         this.connectionPool = connectionPool;
         this.id = id;
+    }
+
+    @Override
+    public ConnectionPool getConnectionPool() {
+        return connectionPool;
     }
 
     @Override
@@ -56,8 +63,8 @@ public class CommonConnection implements RpmConnection {
 
         ClientConfig clientConfig = connectionPool.getClientConfig();
         ServerConfig serverConf = clientConfig.getServerConf();
+        EventLoopGroup workerGroup = connectionPool.getWorkerGroup();
 
-        workerGroup = new NioEventLoopGroup();
         Bootstrap b = new Bootstrap();
         b.group(workerGroup).channel(NioSocketChannel.class);
         b.option(ChannelOption.TCP_NODELAY, true);
@@ -75,14 +82,15 @@ public class CommonConnection implements RpmConnection {
                     logger.debug("通信连接【{}】已建立", id);
                     channel = f.channel();
 
-                    connectionPool.registerChannel(id, channel);
+                    establishTime = new Date();
+
+                    connectionPool.connectionSuccessful(id, CommonConnection.this);
 
                     channel.closeFuture().addListener(new ChannelFutureListener() {
                         @Override
                         public void operationComplete(ChannelFuture future) throws Exception {
                             logger.error("通信连接【{}】被关闭！", id);
-                            workerGroup.shutdownGracefully();
-                            connectionPool.unregisterChannel(id);
+                            connectionPool.connectionFail(id);
                         }
                     });
                     if (shutdown) {
@@ -91,9 +99,7 @@ public class CommonConnection implements RpmConnection {
                     }
                 } else {
                     logger.error("通信连接【{}】建立失败", id, future.cause());
-                    workerGroup.shutdownGracefully();
-                    // 这里也需要取消注册
-                    connectionPool.unregisterChannel(id);
+                    connectionPool.connectionFail(id);
                 }
             }
         });
@@ -129,6 +135,11 @@ public class CommonConnection implements RpmConnection {
     @Override
     public ClientConfig getClientConfig() {
         return connectionPool.getClientConfig();
+    }
+
+    @Override
+    public Date getEstablishTime() {
+        return establishTime;
     }
 
 }

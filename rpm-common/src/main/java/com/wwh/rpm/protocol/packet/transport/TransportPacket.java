@@ -17,6 +17,14 @@ public class TransportPacket extends AbstractPacket {
 
     private byte[] data;
 
+    public TransportPacket() {
+    }
+
+    public TransportPacket(Long id, byte[] data) {
+        this.id = id;
+        this.data = data;
+    }
+
     @Override
     public byte getType() {
         return ProtocolConstants.TYPE_TRANSPORT;

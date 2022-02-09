@@ -1,5 +1,7 @@
 package com.wwh.rpm.client.pool.connection;
 
+import java.util.Date;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,7 @@ import com.wwh.rpm.client.pool.ConnectionPool;
 import com.wwh.rpm.client.pool.RpmConnection;
 import com.wwh.rpm.client.pool.connection.handler.RegisterHandlerInitializer;
 import com.wwh.rpm.common.exception.RPMException;
+import com.wwh.rpm.protocol.packet.transport.TransportPacket;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -17,7 +20,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**
@@ -36,16 +38,22 @@ public class RegisterConnection implements RpmConnection {
 
     private Object lock = new Object();
 
-    private EventLoopGroup workerGroup;
     private Channel channel;
     /**
      * 服务端返回的token
      */
     private String token;
 
+    private Date establishTime;
+
     public RegisterConnection(ConnectionPool connectionPool, Integer id) {
         this.connectionPool = connectionPool;
         this.id = id;
+    }
+
+    @Override
+    public ConnectionPool getConnectionPool() {
+        return connectionPool;
     }
 
     /**
@@ -59,8 +67,8 @@ public class RegisterConnection implements RpmConnection {
 
         ClientConfig clientConfig = connectionPool.getClientConfig();
         ServerConfig serverConf = clientConfig.getServerConf();
+        EventLoopGroup workerGroup = connectionPool.getWorkerGroup();
 
-        workerGroup = new NioEventLoopGroup();
         Bootstrap b = new Bootstrap();
         b.group(workerGroup).channel(NioSocketChannel.class);
         b.option(ChannelOption.TCP_NODELAY, true);
@@ -71,16 +79,15 @@ public class RegisterConnection implements RpmConnection {
         try {
             ChannelFuture f = b.connect(serverConf.getHost(), serverConf.getPort()).sync();
             channel = f.channel();
-            connectionPool.registerChannel(id, channel);
+            establishTime = new Date();
+            connectionPool.connectionSuccessful(id, this);
 
             channel.closeFuture().addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
                     logger.error("客户端【主连接】被关闭！");
-                    workerGroup.shutdownGracefully();
-
+                    // workerGroup.shutdownGracefully();
                     // connectionPool.unregisterChannel(id);
-
                     synchronized (lock) {
                         lock.notifyAll();
                     }
@@ -88,9 +95,8 @@ public class RegisterConnection implements RpmConnection {
                     connectionPool.communicationInterrupt();
                 }
             });
-        } catch (InterruptedException e) {
-            logger.error("连接到服务器异常", e);
-            workerGroup.shutdownGracefully();
+        } catch (Exception e) {
+            logger.error("注册连接启动异常：{}", e.getMessage());
             throw e;
         }
 
@@ -165,6 +171,11 @@ public class RegisterConnection implements RpmConnection {
     @Override
     public Channel getChannel() {
         return channel;
+    }
+
+    @Override
+    public Date getEstablishTime() {
+        return establishTime;
     }
 
 }

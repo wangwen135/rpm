@@ -20,6 +20,13 @@ public class ClosePacket extends AbstractPacket {
         return ProtocolConstants.TYPE_CLOSE_COMMAND;
     }
 
+    public ClosePacket() {
+    }
+
+    public ClosePacket(Long id) {
+        this.id = id;
+    }
+
     public Long getId() {
         return id;
     }

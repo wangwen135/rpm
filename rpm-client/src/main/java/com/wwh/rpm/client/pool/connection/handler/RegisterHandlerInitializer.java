@@ -85,8 +85,7 @@ public class RegisterHandlerInitializer extends ChannelInitializer<SocketChannel
         pipeline.addLast(new ClientHeartbeatHandler());
 
         // 服务端指令处理
-//        pipeline.addLast(eventExecutorGroup,new CommandHandler(baseClient));
-  //      pipeline.addLast(new CommandHandler(registerConnection));
+        pipeline.addLast(new CommandHandler(registerConnection));
 
     }
 

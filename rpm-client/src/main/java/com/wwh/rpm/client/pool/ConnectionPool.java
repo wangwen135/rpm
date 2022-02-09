@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.minlog.Log;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConfig;
 import com.wwh.rpm.client.pool.connection.CommonConnection;
@@ -33,7 +34,7 @@ public class ConnectionPool {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionPool.class);
 
     private ClientConfig clientConfig;
-
+    private BufferManager bufferManager;
     /**
      * 获取连接计数器
      */
@@ -67,13 +68,16 @@ public class ConnectionPool {
     private AtomicBoolean isRunning = new AtomicBoolean(false);
 
     private boolean startingSuccess = false;
-    /**
-     * 工作线程
-     */
+
     private EventLoopGroup workerGroup;
 
     public ConnectionPool(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
+        this.bufferManager = new BufferManager();
+    }
+
+    public BufferManager getBufferManager() {
+        return bufferManager;
     }
 
     public EventLoopGroup getWorkerGroup() {
@@ -111,8 +115,9 @@ public class ConnectionPool {
         regConnection = new RegisterConnection(this, id);
         try {
             regConnection.start();
-        } finally {
+        } catch (Exception e) {
             workerGroup.shutdownGracefully();
+            throw e;
         }
         //
         preconnectMap.put(id, regConnection);
@@ -181,8 +186,8 @@ public class ConnectionPool {
         RpmConnection rpmConn = connectedMap.values().stream().skip(index % connectedMap.size()).findFirst()
                 .orElseThrow(() -> new RPMException("没有可用连接"));
 
-        // TODO 好像没有必要
         if (!rpmConn.isOk()) {
+            logger.warn("连接[{}]不是正常状态", rpmConn.getConnectionId());
             rpmConn.shutdown();
             return null;
         }
@@ -283,7 +288,8 @@ public class ConnectionPool {
      * 通信中断
      */
     public void communicationInterrupt() {
-
+        Log.warn("通信中断！！");
+        shutdownPool();
     }
 
 }

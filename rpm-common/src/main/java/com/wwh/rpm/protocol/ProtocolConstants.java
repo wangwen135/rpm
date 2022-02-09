@@ -16,7 +16,7 @@ public class ProtocolConstants {
     /**
      * 魔法数字
      */
-    public static final byte MAGIC_NUMBER = (byte) 0x88;
+    public static final byte MAGIC_NUMBER = (byte) 0x88; // 136
 
     /**
      * 心跳包
@@ -77,6 +77,11 @@ public class ProtocolConstants {
      * 传输数据
      */
     public static final byte TYPE_TRANSPORT = 40;
+
+    /**
+     * 测试
+     */
+    public static final byte TYPE_TEST = 99;
 
     /**
      * 关闭指令
