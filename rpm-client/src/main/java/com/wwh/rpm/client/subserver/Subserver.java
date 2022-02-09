@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
-import com.wwh.rpm.client.connection.ConnectionProvider;
+import com.wwh.rpm.client.pool.ConnectionPool;
+import com.wwh.rpm.client.subconnection.SubconnectionManager;
 import com.wwh.rpm.client.subserver.handler.SubserverHandlerInitializer;
 import com.wwh.rpm.common.utils.LogUtil;
 
@@ -49,7 +50,7 @@ public class Subserver {
         b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
 
         // 不会自动读取数据
-        //b.childOption(ChannelOption.AUTO_READ, false);
+        // b.childOption(ChannelOption.AUTO_READ, false);
         b.childOption(ChannelOption.TCP_NODELAY, true);
 
         b.childHandler(new SubserverHandlerInitializer(this));
@@ -104,7 +105,11 @@ public class Subserver {
         return subserverManager.getToken();
     }
 
-    public ConnectionProvider getConnectionProvider() {
-        return subserverManager.getConnectionProvider();
+    public ConnectionPool getConnectionPool() {
+        return subserverManager.getConnectionPool();
+    }
+
+    public SubconnectionManager getSubconnectionManager() {
+        return subserverManager.getSubconnectionManager();
     }
 }

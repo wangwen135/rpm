@@ -70,8 +70,8 @@ public class ClientManager implements Closeer {
         connectionPool = new ConnectionPool(config);
 
         subserverManager = new SubserverManager(this);
-        
-        subconnectionManager = 
+
+        subconnectionManager = new SubconnectionManager(this);
 
     }
 
@@ -92,11 +92,16 @@ public class ClientManager implements Closeer {
 
     public void shutdownClient() {
         synchronized (lock) {
-            logger.info("关闭连接池...");
-            connectionPool.shutdownPool();
+
+            logger.info("关闭子连接...");
+            subconnectionManager.close();
 
             logger.info("关闭子服务...");
             subserverManager.stopAll();
+
+            logger.info("关闭连接池...");
+            connectionPool.shutdownPool();
+
         }
     }
 
@@ -110,6 +115,10 @@ public class ClientManager implements Closeer {
 
     public ConnectionPool getConnectionPool() {
         return connectionPool;
+    }
+
+    public SubconnectionManager getSubconnectionManager() {
+        return subconnectionManager;
     }
 
     @Override

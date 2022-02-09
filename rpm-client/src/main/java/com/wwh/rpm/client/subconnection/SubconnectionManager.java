@@ -1,6 +1,5 @@
 package com.wwh.rpm.client.subconnection;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.pool.BufferManager;
 import com.wwh.rpm.client.pool.ConnectionPool;
-import com.wwh.rpm.client.pool.connection.CommonConnection;
 import com.wwh.rpm.client.subconnection.handler.ToTargetHandlerInitializer;
 import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
 
@@ -66,17 +64,22 @@ public class SubconnectionManager {
                     Channel channel = future.channel();
                     bufferManager.registerSubChannel(id, channel);
 
+                    channels.put(id, channel);
+
                     channel.closeFuture().addListener(new ChannelFutureListener() {
                         @Override
                         public void operationComplete(ChannelFuture future) throws Exception {
                             logger.debug("到目标【{}:{}】的连接（{}）关闭", host, port, id);
+                            pool.getConnection().closeRemoteSubChannel(id);
                             bufferManager.unregister(id);
+                            channels.remove(id);
                         }
                     });
                 } else {
                     logger.debug("到目标【{}:{}】的连接（{}）建立失败", host, port, id, future.cause());
-                    
+                    pool.getConnection().closeRemoteSubChannel(id);
                     bufferManager.unregister(id);
+                    channels.remove(id);
                 }
             }
         });

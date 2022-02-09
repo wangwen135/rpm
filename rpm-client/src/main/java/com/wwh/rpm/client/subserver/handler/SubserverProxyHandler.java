@@ -38,6 +38,8 @@ public class SubserverProxyHandler extends ChannelInboundHandlerAdapter {
         Channel inboundChannel = ctx.channel();
         logger.debug("子服务收到新连接：{} 开始建立到服务器链路", inboundChannel);
 
+        subserver.getConnectionPool().getConnection();
+        
         ConnectionProvider cp = subserver.getConnectionProvider();
 
         String host = subserver.getForwardConfig().getForwardHost();
@@ -57,6 +59,12 @@ public class SubserverProxyHandler extends ChannelInboundHandlerAdapter {
         inboundChannel.read();
         toServerChannel.read();
 
+    }
+    
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // TODO Auto-generated method stub
+        super.channelRead(ctx, msg);
     }
 
     @Override
