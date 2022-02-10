@@ -33,7 +33,7 @@ public class SubserverHandlerInitializer extends ChannelInitializer<SocketChanne
         HandlerInitHelper.initNettyLoggingHandler(pipeline, config.getArguments());
 
         // 转发处理
-        pipeline.addLast(new SubserverProxyHandler(subserver));
+        pipeline.addLast(new SubserverChannelHandler(subserver));
     }
 
 }

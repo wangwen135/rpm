@@ -10,7 +10,6 @@ import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
 import com.wwh.rpm.client.pool.ConnectionPool;
-import com.wwh.rpm.client.subconnection.SubconnectionManager;
 
 /**
  * 子服务管理器
@@ -66,15 +65,15 @@ public class SubserverManager {
         return clientManager.getConfig();
     }
 
-    public String getToken() {
-        return clientManager.getToken();
-    }
-    
+/*    public String getToken() {
+return clientManager.getToken();
+}
+*/
     public ConnectionPool getConnectionPool() {
         return clientManager.getConnectionPool();
     }
 
-    public SubconnectionManager getSubconnectionManager() {
-        return clientManager.getSubconnectionManager();
+    public long getNextId() {
+        return clientManager.getNextId();
     }
 }

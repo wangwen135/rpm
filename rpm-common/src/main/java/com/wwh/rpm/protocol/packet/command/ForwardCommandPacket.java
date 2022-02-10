@@ -18,6 +18,16 @@ public class ForwardCommandPacket extends AbstractPacket {
 
     private int port;
 
+    public ForwardCommandPacket() {
+
+    }
+
+    public ForwardCommandPacket(Long id, String host, int port) {
+        this.id = id;
+        this.host = host;
+        this.port = port;
+    }
+
     @Override
     public byte getType() {
         return ProtocolConstants.TYPE_FORWARD_COMMAND;

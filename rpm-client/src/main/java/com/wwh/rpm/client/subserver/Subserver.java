@@ -93,6 +93,10 @@ public class Subserver {
         return sbuf.toString();
     }
 
+    public SubserverManager getSubserverManager() {
+        return subserverManager;
+    }
+
     public ForwardOverServer getForwardConfig() {
         return forwardConfig;
     }
@@ -101,15 +105,15 @@ public class Subserver {
         return subserverManager.getConfig();
     }
 
-    public String getToken() {
-        return subserverManager.getToken();
-    }
-
+/*    public String getToken() {
+return subserverManager.getToken();
+}
+*/
     public ConnectionPool getConnectionPool() {
         return subserverManager.getConnectionPool();
     }
 
-    public SubconnectionManager getSubconnectionManager() {
-        return subserverManager.getSubconnectionManager();
+    public long getNextId() {
+        return subserverManager.getNextId();
     }
 }

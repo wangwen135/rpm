@@ -3,6 +3,7 @@ package com.wwh.rpm.client.pool;
 import java.util.Date;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
+import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
 import com.wwh.rpm.protocol.packet.transport.ClosePacket;
 import com.wwh.rpm.protocol.packet.transport.TransportPacket;
 
@@ -99,12 +100,24 @@ public interface RpmConnection {
     }
 
     /**
+     * 将转发指令包发送到服务端
+     * 
+     * @param id
+     * @param host
+     * @param port
+     */
+    default void writeForwardPacket(Long id, String host, int port) {
+        ForwardCommandPacket forwardPacket = new ForwardCommandPacket(id, host, port);
+        getChannel().writeAndFlush(forwardPacket);
+    }
+
+    /**
      * 写数据到服务端
      * 
      * @param id
      * @param data
      */
-    default void writeData2Server(long id, byte[] data) {
+    default void writeData2Server(Long id, byte[] data) {
         TransportPacket tPacket = new TransportPacket(id, data);
         getChannel().writeAndFlush(tPacket);
     }
