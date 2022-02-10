@@ -59,7 +59,7 @@ public class BufferManager implements Runnable {
         activate();
     }
 
-    public void unregister(Long id) {
+    public Channel unregister(Long id) {
         Channel channel = channels.remove(id);
         Queue<byte[]> queue = buffers.remove(id);
         if (channel != null && queue != null && queue.size() > 0) {
@@ -72,6 +72,8 @@ public class BufferManager implements Runnable {
 
         lastOutputTime.remove(id);
         lastReceiveTime.remove(id);
+
+        return channel;
     }
 
     public void putBuffer(long id, byte[] buffer) {

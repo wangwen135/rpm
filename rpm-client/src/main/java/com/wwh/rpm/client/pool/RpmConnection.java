@@ -3,6 +3,7 @@ package com.wwh.rpm.client.pool;
 import java.util.Date;
 
 import com.wwh.rpm.client.config.pojo.ClientConfig;
+import com.wwh.rpm.client.subconnection.SubconnectionProvider;
 import com.wwh.rpm.protocol.packet.command.ForwardCommandPacket;
 import com.wwh.rpm.protocol.packet.transport.ClosePacket;
 import com.wwh.rpm.protocol.packet.transport.TransportPacket;
@@ -139,5 +140,9 @@ public interface RpmConnection {
      */
     default BufferManager getBufferManager() {
         return getConnectionPool().getBufferManager();
+    }
+
+    default SubconnectionProvider getSubconnectionProvider() {
+        return getConnectionPool().getSubconnectionProvider();
     }
 }

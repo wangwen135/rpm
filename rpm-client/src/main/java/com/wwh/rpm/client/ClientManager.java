@@ -6,17 +6,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wwh.rpm.client.base.BaseClient;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
-import com.wwh.rpm.client.connection.ConnectionProvider;
-import com.wwh.rpm.client.pool.BufferManager;
 import com.wwh.rpm.client.pool.ConnectionPool;
-import com.wwh.rpm.client.subconnection.SubconnectionManager;
+import com.wwh.rpm.client.subconnection.SubconnectionProvider;
 import com.wwh.rpm.client.subserver.SubserverManager;
 import com.wwh.rpm.ctrl.Closeer;
-
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * 客户端管理器
@@ -30,20 +24,14 @@ public class ClientManager implements Closeer {
 
     private ConnectionPool connectionPool;
 
-    // private BufferManager bufferManager;
-
-    // private BaseClient baseClient;
     private SubserverManager subserverManager;
 
-    private SubconnectionManager subconnectionManager;
-    // private ConnectionProvider connectionProvider;
+    private SubconnectionProvider subconnectionProvider;
 
     private static Object lock = new Object();
 
     // 一次性
     private AtomicBoolean isStartup = new AtomicBoolean(false);
-
-    // private EventLoopGroup workerGroup;
 
     /**
      * 全局ID生成器<br>
@@ -67,11 +55,11 @@ public class ClientManager implements Closeer {
     public ClientManager(ClientConfig config) {
         this.config = config;
 
-        connectionPool = new ConnectionPool(config);
+        connectionPool = new ConnectionPool(this);
 
         subserverManager = new SubserverManager(this);
 
-        subconnectionManager = new SubconnectionManager(this);
+        subconnectionProvider = new SubconnectionProvider(this);
 
     }
 
@@ -94,7 +82,7 @@ public class ClientManager implements Closeer {
         synchronized (lock) {
 
             logger.info("关闭子连接...");
-            subconnectionManager.close();
+            subconnectionProvider.close();
 
             logger.info("关闭子服务...");
             subserverManager.stopAll();
@@ -117,8 +105,8 @@ public class ClientManager implements Closeer {
         return connectionPool;
     }
 
-    public SubconnectionManager getSubconnectionManager() {
-        return subconnectionManager;
+    public SubconnectionProvider getSubconnectionProvider() {
+        return subconnectionProvider;
     }
 
     @Override

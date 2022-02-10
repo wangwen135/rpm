@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ForwardOverServer;
 import com.wwh.rpm.client.pool.ConnectionPool;
-import com.wwh.rpm.client.subconnection.SubconnectionManager;
 import com.wwh.rpm.client.subserver.handler.SubserverHandlerInitializer;
 import com.wwh.rpm.common.utils.LogUtil;
 

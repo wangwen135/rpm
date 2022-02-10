@@ -12,8 +12,10 @@ import io.netty.channel.socket.SocketChannel;
 public class ToTargetHandlerInitializer extends ChannelInitializer<SocketChannel> {
 
     private ClientManager clientManager;
+    private Long id;
 
-    public ToTargetHandlerInitializer(ClientManager clientManager) {
+    public ToTargetHandlerInitializer(Long id, ClientManager clientManager) {
+        this.id = id;
         this.clientManager = clientManager;
     }
 
@@ -23,9 +25,11 @@ public class ToTargetHandlerInitializer extends ChannelInitializer<SocketChannel
         ClientConfig config = clientManager.getConfig();
         // 日志
         HandlerInitHelper.initNettyLoggingHandler(pipeline, config.getArguments());
+
+        // 从池中获取连接
         ConnectionPool pool = clientManager.getConnectionPool();
 
-        pipeline.addLast(new DataTransmissionHandler(pool.getConnection(), pool.getBufferManager()));
+        pipeline.addLast(new DataTransmissionHandler(id, pool.getConnection(), pool.getBufferManager()));
     }
 
 }

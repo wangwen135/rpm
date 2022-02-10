@@ -12,7 +12,6 @@ import com.wwh.rpm.client.pool.ConnectionPool;
 import com.wwh.rpm.client.pool.RpmConnection;
 import com.wwh.rpm.client.pool.connection.handler.RegisterHandlerInitializer;
 import com.wwh.rpm.common.exception.RPMException;
-import com.wwh.rpm.protocol.packet.transport.TransportPacket;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;

@@ -13,10 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.minlog.Log;
+import com.wwh.rpm.client.ClientManager;
 import com.wwh.rpm.client.config.pojo.ClientConfig;
 import com.wwh.rpm.client.config.pojo.ServerConfig;
 import com.wwh.rpm.client.pool.connection.CommonConnection;
 import com.wwh.rpm.client.pool.connection.RegisterConnection;
+import com.wwh.rpm.client.subconnection.SubconnectionProvider;
 import com.wwh.rpm.common.config.pojo.CommunicationConfig;
 import com.wwh.rpm.common.exception.RPMException;
 
@@ -33,6 +35,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 public class ConnectionPool {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionPool.class);
 
+    private ClientManager clientManager;
     private ClientConfig clientConfig;
     private BufferManager bufferManager;
     /**
@@ -71,8 +74,9 @@ public class ConnectionPool {
 
     private EventLoopGroup workerGroup;
 
-    public ConnectionPool(ClientConfig clientConfig) {
-        this.clientConfig = clientConfig;
+    public ConnectionPool(ClientManager clientManager) {
+        this.clientManager = clientManager;
+        this.clientConfig = clientManager.getConfig();
         this.bufferManager = new BufferManager();
     }
 
@@ -283,6 +287,10 @@ public class ConnectionPool {
 
     public ClientConfig getClientConfig() {
         return clientConfig;
+    }
+
+    public SubconnectionProvider getSubconnectionProvider() {
+        return clientManager.getSubconnectionProvider();
     }
 
     /**

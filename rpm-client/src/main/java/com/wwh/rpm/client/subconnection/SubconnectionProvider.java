@@ -21,18 +21,22 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-public class SubconnectionManager {
-    private static final Logger logger = LoggerFactory.getLogger(SubconnectionManager.class);
+/**
+ * 子链接提供者
+ * 
+ * @author WWH
+ *
+ */
+public class SubconnectionProvider {
+    private static final Logger logger = LoggerFactory.getLogger(SubconnectionProvider.class);
 
     private EventLoopGroup workerGroup;
-
-//    private AtomicLong counter = new AtomicLong(0);
 
     private Map<Long, Channel> channels = new ConcurrentHashMap<>();
 
     private ClientManager clientManager;
 
-    public SubconnectionManager(ClientManager clientManager) {
+    public SubconnectionProvider(ClientManager clientManager) {
         workerGroup = new NioEventLoopGroup();
         this.clientManager = clientManager;
     }
@@ -52,7 +56,7 @@ public class SubconnectionManager {
         Bootstrap b = new Bootstrap();
         b.group(workerGroup).channel(NioSocketChannel.class);
         b.option(ChannelOption.TCP_NODELAY, true);
-        b.handler(new ToTargetHandlerInitializer(clientManager));
+        b.handler(new ToTargetHandlerInitializer(id, clientManager));
 
         ChannelFuture future = b.connect(host, port);
 

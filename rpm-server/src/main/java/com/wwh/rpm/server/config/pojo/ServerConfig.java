@@ -2,10 +2,21 @@ package com.wwh.rpm.server.config.pojo;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.wwh.rpm.common.Constants;
+import com.wwh.rpm.common.config.pojo.AbstractConfig;
 import com.wwh.rpm.common.config.pojo.Arguments;
 import com.wwh.rpm.common.config.pojo.CommunicationConfig;
+import com.wwh.rpm.common.exception.ConfigException;
 
-public class ServerConfig extends CommunicationConfig {
+/**
+ * 服务端配置
+ * 
+ * @author WWH
+ * @date 2022-2-10
+ */
+public class ServerConfig extends AbstractConfig {
 
     /**
      * 服务ID
@@ -28,10 +39,18 @@ public class ServerConfig extends CommunicationConfig {
     private Integer ctrlPort;
 
     /**
+     * 通信配置
+     */
+    private CommunicationConfig communication;
+
+    /**
      * 转发配置
      */
     private List<ForwardOverClient> forwardOverClient;
 
+    /**
+     * 其他参数
+     */
     private Arguments arguments;
 
     public String getSid() {
@@ -82,25 +101,19 @@ public class ServerConfig extends CommunicationConfig {
         this.ctrlPort = ctrlPort;
     }
 
-    /**
-     * 获取通讯配置
-     * 
-     * @return
-     */
-    public CommunicationConfig getCommConfig() {
-        CommunicationConfig config = new CommunicationConfig();
-        config.setEncryptType(getEncryptType());
-        config.setEnableCompression(getEnableCompression());
-        config.setCompressionLevel(getCompressionLevel());
-        return config;
+    public CommunicationConfig getCommunication() {
+        return communication;
+    }
+
+    public void setCommunication(CommunicationConfig communication) {
+        this.communication = communication;
     }
 
     @Override
     public String toString() {
         return "ServerConfig [sid=" + sid + ", host=" + host + ", port=" + port + ", ctrlPort=" + ctrlPort
-                + ", forwardOverClient=" + forwardOverClient + ", arguments=" + arguments + ", getEncryptType()="
-                + getEncryptType() + ", getEnableCompression()=" + getEnableCompression() + ", getCompressionLevel()="
-                + getCompressionLevel() + "]";
+                + ", communication=" + communication + ", forwardOverClient=" + forwardOverClient + ", arguments="
+                + arguments + "]";
     }
 
     public String toPrettyString() {
@@ -111,9 +124,8 @@ public class ServerConfig extends CommunicationConfig {
         sbuf.append("监听地址   host = ").append(host).append("\n");
         sbuf.append("监听端口   port = ").append(port).append("\n");
         sbuf.append("控制端口   ctrlPort = ").append(ctrlPort).append("\n");
-        sbuf.append("加密方式   encryptType = ").append(getEncryptType()).append("\n");
-        sbuf.append("是否压缩   enableCompression = ").append(getEnableCompression()).append("\n");
-        sbuf.append("压缩级别   compressionLevel = ").append(getCompressionLevel()).append("\n");
+        // 通信配置
+        sbuf.append(communication.toPrettyString());
 
         if (forwardOverClient != null && !forwardOverClient.isEmpty()) {
             sbuf.append("\n# 服务端经由客户端转发的列表：\n");
@@ -128,13 +140,68 @@ public class ServerConfig extends CommunicationConfig {
 
         // 其他配置
         if (arguments != null) {
-            sbuf.append("\n# 其他配置：\n");
             sbuf.append(arguments.toPrettyString());
         }
 
         sbuf.append("\n##############################################\n");
 
         return sbuf.toString();
+    }
+
+    @Override
+    public void check() throws ConfigException {
+        if (serverConfig == null) {
+            throw new ConfigException("配置文件不能空");
+        }
+
+        if (StringUtils.isBlank(serverConfig.getSid())) {
+            throw new ConfigException("服务端ID【sid】不能空");
+        }
+
+        if (StringUtils.isBlank(serverConfig.getHost())) {
+            throw new ConfigException("监听地址【host】不能空");
+        }
+
+        if (serverConfig.getPort() < 1 || serverConfig.getPort() > 65535) {
+            throw new ConfigException("监听端口【port】配置错误");
+        }
+
+        Integer compressionLevel = serverConfig.getCompressionLevel();
+        if (compressionLevel < Constants.COMPRESSION_LEVEL_MIN || compressionLevel > Constants.COMPRESSION_LEVEL_MAX) {
+            throw new ConfigException("压缩级别【compressionLevel】配置错误，只支持 0-9");
+        }
+
+        // 转发配置
+        checkForwardOverClient(forwardOverClient);
+    }
+
+    private static void checkForwardOverClient(List<ForwardOverClient> forwardList) throws ConfigException {
+        if (forwardList == null || forwardList.isEmpty()) {
+            return;
+        }
+        for (int i = 1; i <= forwardList.size(); i++) {
+            ForwardOverClient f = forwardList.get(i - 1);
+
+            if (StringUtils.isBlank(f.getListenHost())) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:listenHost】不能空");
+            }
+
+            if (f.getListenPort() < 1 || f.getListenPort() > 65535) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:listenPort】错误");
+            }
+
+            if (StringUtils.isBlank(f.getClientId())) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:clientId】不能空");
+            }
+
+            if (StringUtils.isBlank(f.getForwardHost())) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:forwardHost】不能空");
+            }
+
+            if (f.getForwardPort() < 1 || f.getForwardPort() > 65535) {
+                throw new ConfigException("转发配置【forwardOverClient[" + i + "]:forwardPort】错误");
+            }
+        }
     }
 
 }

@@ -27,7 +27,8 @@ public class DataTransmissionHandler extends ChannelInboundHandlerAdapter {
 
     private BufferManager bufferManager;
 
-    public DataTransmissionHandler(RpmConnection rpmConnection, BufferManager bufferManager) {
+    public DataTransmissionHandler(Long id, RpmConnection rpmConnection, BufferManager bufferManager) {
+        this.id = id;
         this.rpmConnection = rpmConnection;
         this.bufferManager = bufferManager;
     }
