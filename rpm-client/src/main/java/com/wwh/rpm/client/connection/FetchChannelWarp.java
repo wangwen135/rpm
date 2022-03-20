@@ -15,7 +15,7 @@ import io.netty.channel.Channel;
  */
 public class FetchChannelWarp {
 
-    private static final int DEFAULT_WAIT_TIME_SECOND = 6;
+    private static final int DEFAULT_WAIT_TIME_SECOND = 10;
 
     private Object lock = new Object();
 
@@ -32,7 +32,7 @@ public class FetchChannelWarp {
     /**
      * <pre>
      * 一次性方法，阻塞方法
-     * 等待获取一个有效的Channel对象，最多等3秒
+     * 等待获取一个有效的Channel对象，最多等x秒
      * 或者抛出异常
      * </pre>
      * 
@@ -60,13 +60,13 @@ public class FetchChannelWarp {
         }
         isCalled = true;
 
-        for (int i = 0; i < waitTimeSecond; i++) {
+        for (int i = 0; i < waitTimeSecond * 10; i++) {
             Channel c = get();
             if (c != null) {
                 return c;
             }
             synchronized (lock) {
-                lock.wait(1000);
+                lock.wait(100);
             }
         }
         Channel c = get();
@@ -75,7 +75,7 @@ public class FetchChannelWarp {
         }
         // 标记为超时，等链接建立好之后又要关闭掉
         isTimeout = true;
-        throw new RPMException("获取通道超时");
+        throw new RPMException("获取通道超时，等待" + waitTimeSecond + "秒");
     }
 
     private Channel get() throws Exception {
