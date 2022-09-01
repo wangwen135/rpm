@@ -3,6 +3,7 @@ package com.wwh.rpm.common.codec;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -25,6 +26,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * <pre>
@@ -92,6 +95,8 @@ public class RSAUtil {
 
     public static final String PATTERN = "ECB";
 
+    public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+
     /**
      * 默认填充方式
      */
@@ -117,7 +122,7 @@ public class RSAUtil {
         System.out.println(new String(doutput));
     }
 
-    public static void main(String[] args)
+    public static void main3(String[] args)
             throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException,
             IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, IOException {
 //        generateRsaKeyPairBytes(512);
@@ -160,8 +165,8 @@ public class RSAUtil {
 //        RSA_PKCS1_OAEP_PADDING
 //         Cipher cipher = Cipher.getInstance("RSA/ECB/NoPadding");
 //         Cipher cipher = Cipher.getInstance("RSA/ECB/NoPadding");
-        //RSA_PKCS1_OAEP_PADDING
-         Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
+        // RSA_PKCS1_OAEP_PADDING
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
 
 //        Cipher cipher = Cipher.getInstance("RSA");
 
@@ -212,6 +217,63 @@ public class RSAUtil {
 
     }
 
+    public static void main(String[] args) {
+        String privateKeyBase64 = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALgdKUIcX4rq8QGoLBnePYzRCUxYAwNopn7308q73MbqieFClHeMkk3t9GPa+FjYPWH1GLHhnIEW8/g99qacKWn+SvjgDNVlw6TuZ1Db9VQNwNBaTZXTqK0btn65htU1rM1m0M0BRR7mPjaArx6QXULu5ygGWKmKLcDWcYrK5KbZAgMBAAECgYBFMYBt/ifSF5XX35IjbqiHIZBzBqirQUtBcHZCPPQuNbr304PkogniC8nLNWIcUbhP9kL/pyCgSzYJV5A48XuGXNEWbhOtC66FL5NLxmba7kVrdNC2TZ6tp9xm3Nv7oq+fQuc8/rvIvFXG9o7uhxuTrMYrni1NQ+cPBsFYtB6WmQJBAOPlKd8U7o9pBLyzPGC3HQnGkb++Qah899dM7Ay7RHjm2Htck8eRLtCJNopQ27PxIHgNdHzlmiWGm5yW92XBErsCQQDO0cmbkKiVwB90h98UwNn6o+U8M/SVYq2cnSO9KsSIhVQUhnSTD5ib7XdnntZOtjwHiLq0fbrg+wOSnPzQmQV7AkEAnSfJKid7I7ZeJ+rKNj/QbI9crwd6q8ASAYzwMw9o9p7qppd+6V57FB+rVtLPz1T2+RL+Q6rqE/qxkNiinq74RQJBAIuCmCyH+DCL2KwSuziUnnWj+Q4TPflHBzWOCn2gS9KLnZv61sgczSThmpobWxTdeMDcSpVV+qmoqVBM9X0Au+ECQEIS4g49pPgnbeghNOuBRL/KLgLD2+fJy0Q6NAUA2koaxADiffJIzODxLwacCDSyvXAmcYl/npiUHhLSx2QOSos=";
+        String publicKeyBase64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4HSlCHF+K6vEBqCwZ3j2M0QlMWAMDaKZ+99PKu9zG6onhQpR3jJJN7fRj2vhY2D1h9Rix4ZyBFvP4PfamnClp/kr44AzVZcOk7mdQ2/VUDcDQWk2V06itG7Z+uYbVNazNZtDNAUUe5j42gK8ekF1C7ucoBlipii3A1nGKyuSm2QIDAQAB";
+        String text = "【待加密的内容】 超过117字节长度的文本加密测试，这里指的是使用UTF-8编码后的字节数组长度超过了117字节(RSA/ECB/PKCS1Padding在使用1024位长度秘钥的情况下)，此时需要对加解密数据进行分片";
+
+        System.out.println("公钥加密 - 私钥解密\n");
+
+        System.out.println("公钥加密后的密文：");
+        String cipher = publicKeyEncryptSimple(publicKeyBase64, text);
+        System.out.println(cipher);
+
+        System.out.println("私钥解密后的明文：");
+        System.out.println(privateKeyDecryptSimple(privateKeyBase64, cipher));
+
+        System.out.println("\n\n私钥加密 - 公钥解密\n");
+        cipher = privateKeyEncryptSimple(privateKeyBase64, text);
+        System.out.println("私钥加密后的密文：");
+        System.out.println(cipher);
+
+        System.out.println("公钥解密后的明文：");
+        System.out.println(publicKeyDecryptSimple(publicKeyBase64, cipher));
+
+    }
+
+    public static void main4(String[] args) throws Exception {
+        System.out.println("算法各端统一使用：RSA/ECB/PKCS1Padding");
+        System.out.println("  算法：RSA");
+        System.out.println("  模式：ECB");
+        System.out.println("  填充方式：PKCS1Padding");
+        System.out.println("字符串与字节转换统一使用UTF-8编码");
+        System.out.println("如果明文长度大于可加密的最大明文长度(这里使用1024位的密码最大明文长度为117bytes)，就需将明文分片");
+        System.out.println("  片数=(明文长度(bytes)/(密钥长度(bytes)-11))的整数部分+1,就是不满一片的按一片算");
+
+        System.out.println("\n\n");
+
+        System.out.println("生成随机的1024位的秘钥");
+        Map<String, Object> m = generateRsaKeyPairMap(1024);
+        System.out.println("公钥编码格式：X.509，私钥编码格式：PKCS#8");
+        System.out.println("公私钥数据使用Base64编码：");
+        final String privateKeyBase64 = m.get("privateKeyBase64").toString();
+        System.out.println("私钥：" + privateKeyBase64);
+        final String publicKeyBase64 = m.get("publicKeyBase64").toString();
+        System.out.println("公钥：" + publicKeyBase64);
+        System.out.println("将公私钥内置于程序中，后台保证私钥不泄露");
+
+        System.out.println("\n\n加解密演示：");
+        String text = "这是一个用于RAS加解密测试的文本值";
+        System.out.println("明文值是：" + text);
+
+        System.out.println("公钥加密---私钥解密 演示");
+        String ciphertext = publicKeyEncryptSimple(publicKeyBase64, text);
+        System.out.println("公钥加密后的密文：" + ciphertext);
+
+        String cleartext = privateKeyDecryptSimple(privateKeyBase64, ciphertext);
+        System.out.println("私钥解密后的明文：" + cleartext);
+    }
+
     /**
      * 随机生成RSA秘钥对
      * 
@@ -245,8 +307,10 @@ public class RSAUtil {
 
         Map<String, Object> map = new HashMap<>();
         map.put("publicKey", publicKey.getEncoded());
+        map.put("publicKeyBase64", Base64.encodeBase64String(publicKey.getEncoded()));
         map.put("publicKeyFormat", publicKey.getFormat());
         map.put("privateKey", privateKey.getEncoded());
+        map.put("privateKeyBase64", Base64.encodeBase64String(privateKey.getEncoded()));
         map.put("privateKeyFormat", privateKey.getFormat());
         // 模数
         map.put("modulus", publicKey.getModulus().toString());
@@ -326,6 +390,24 @@ public class RSAUtil {
     }
 
     /**
+     * 简单公钥加密<br>
+     * 自动计算分片
+     * 
+     * @param publicKey base64编码的X.509格式公钥
+     * @param cleartext 明文内容，使用UTF8编码转成字节数组
+     * @return base64编码的密文
+     */
+    public static String publicKeyEncryptSimple(String publicKey, String cleartext) {
+        try {
+            RSAPublicKey rsaPublicKey = getPublicKey(Base64.decodeBase64(publicKey));
+            byte[] cipher = publicKeyEncrypt(rsaPublicKey, DEFAULT_PADDING, cleartext.getBytes(DEFAULT_CHARSET), null);
+            return Base64.encodeBase64String(cipher);
+        } catch (Exception e) {
+            throw new RuntimeException("简单公钥加密异常", e);
+        }
+    }
+
+    /**
      * 公钥加密
      * 
      * @param publicKey    公钥
@@ -356,6 +438,24 @@ public class RSAUtil {
     }
 
     /**
+     * 简单公钥解密<br>
+     * 自动计算分片
+     * 
+     * @param publicKey  base64编码的X.509格式公钥
+     * @param ciphertext base64编码的密文
+     * @return UTF-8编码的字符串
+     */
+    public static String publicKeyDecryptSimple(String publicKey, String ciphertext) {
+        try {
+            RSAPublicKey rsaPublicKey = getPublicKey(Base64.decodeBase64(publicKey));
+            byte[] clear = publicKeyDecrypt(rsaPublicKey, DEFAULT_PADDING, Base64.decodeBase64(ciphertext));
+            return new String(clear, DEFAULT_CHARSET);
+        } catch (Exception e) {
+            throw new RuntimeException("简单公钥解密异常", e);
+        }
+    }
+
+    /**
      * 公钥解密
      * 
      * @param publicKey 公钥
@@ -374,6 +474,24 @@ public class RSAUtil {
             BadPaddingException, IOException {
         String algorithm = getAlgorithm(padding);
         return decrypt(algorithm, publicKey, crypttext, publicKey.getModulus().bitLength() / 8);
+    }
+
+    /**
+     * 简单私钥加密<br>
+     * 
+     * @param privateKey base64编码的PKCS#8格式私钥
+     * @param cleartext  明文内容，使用UTF8编码转成字节数组
+     * @return base64编码的密文
+     */
+    public static String privateKeyEncryptSimple(String privateKey, String cleartext) {
+        try {
+            RSAPrivateKey rsaPrivateKey = getPrivateKey(Base64.decodeBase64(privateKey));
+            byte[] cipher = privateKeyEncrypt(rsaPrivateKey, DEFAULT_PADDING, cleartext.getBytes(DEFAULT_CHARSET),
+                    null);
+            return Base64.encodeBase64String(cipher);
+        } catch (Exception e) {
+            throw new RuntimeException("简单私钥加密异常", e);
+        }
     }
 
     /**
@@ -408,6 +526,24 @@ public class RSAUtil {
     }
 
     /**
+     * 简单私钥解密<br>
+     * 自动计算分片
+     * 
+     * @param privateKey base64编码的PKCS#8格式私钥
+     * @param ciphertext base64编码的密文
+     * @return UTF-8编码的字符串
+     */
+    public static String privateKeyDecryptSimple(String privateKey, String ciphertext) {
+        try {
+            RSAPrivateKey rsaPrivateKey = getPrivateKey(Base64.decodeBase64(privateKey));
+            byte[] clear = privateKeyDecrypt(rsaPrivateKey, DEFAULT_PADDING, Base64.decodeBase64(ciphertext));
+            return new String(clear, DEFAULT_CHARSET);
+        } catch (Exception e) {
+            throw new RuntimeException("简单私钥解密异常", e);
+        }
+    }
+
+    /**
      * 私钥解密
      * 
      * @param privateKey 私钥
@@ -425,7 +561,7 @@ public class RSAUtil {
             throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException,
             BadPaddingException, IOException {
         String algorithm = getAlgorithm(padding);
-        return decrypt(algorithm, privateKey, crypttext, privateKey.getModulus().bitCount() / 8);
+        return decrypt(algorithm, privateKey, crypttext, privateKey.getModulus().bitLength() / 8);
 
     }
 
